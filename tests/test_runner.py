@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -29,6 +30,20 @@ def test_run_merge_and_provenance(workspace: Path) -> None:
     assert (workspace / "cart.py").read_text(encoding="utf-8") == 'MESSAGE = "hello"\n'
     assert runner.board()["counts"]["done"] == 1
     assert runner.git.is_clean()
+
+
+def test_run_can_be_recovered_from_git_notes(workspace: Path) -> None:
+    runner = Runner(workspace)
+    run = runner.run_task("T-1")
+    assert run.commit
+
+    # Simulate a fresh clone: local manifests, the board cache and the note stay.
+    shutil.rmtree(workspace / ".crewgit" / "runs")
+    (workspace / ".crewgit" / "board.db").unlink(missing_ok=True)
+    recovered = Runner(workspace).load_run(run.run_id)
+    assert recovered.status == "passed"
+    assert recovered.diff_sha256 == run.diff_sha256
+    assert recovered.commit == run.commit
 
 
 def test_replay_reproduces_the_diff(workspace: Path) -> None:

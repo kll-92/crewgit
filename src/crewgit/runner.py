@@ -220,7 +220,12 @@ class Runner:
             run.duration_ms = int((time.monotonic() - started) * 1000)
             run.finished_at = iso_now()
             run.exit_code = result.exit_code
-            run.usage = result.usage
+            run.usage = result.usage or {
+                "input_tokens": None,
+                "output_tokens": None,
+                "cost_usd": None,
+                "note": "adapter did not report usage",
+            }
             run.model = result.model or run.model
 
             self._finalise_run(run, task, worktree, result)
@@ -520,6 +525,11 @@ class Runner:
         path = self.paths.runs_dir / f"{run_id}.json"
         if path.exists():
             return Run.from_dict(json.loads(path.read_text(encoding="utf-8")))
+        note = self.git.find_note(f'"run_id": "{run_id}"')
+        if note:
+            run = Run.from_dict(json.loads(note))
+            self.store.upsert_run(run)
+            return run
         raise ContractError(f"unknown run '{run_id}'")
 
     def merge(self, run_id: str, *, force: bool = False, reason: str | None = None) -> dict[str, Any]:

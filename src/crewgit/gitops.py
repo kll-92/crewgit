@@ -298,6 +298,20 @@ class Git:
             return None
         return proc.stdout
 
+    def find_note(self, needle: str) -> str | None:
+        """Scan notes for a substring; used to recover a run after a fresh clone."""
+        proc = self._run(["notes", "--ref", NOTES_REF, "list"], check=False)
+        if proc.returncode != 0:
+            return None
+        for line in proc.stdout.splitlines():
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            body = self.note_show(parts[-1])
+            if body and needle in body:
+                return body
+        return None
+
     def has_notes_ref(self) -> bool:
         proc = self._run(["rev-parse", "--verify", "--quiet", f"refs/notes/{NOTES_REF}"], check=False)
         return proc.returncode == 0
