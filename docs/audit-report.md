@@ -141,7 +141,7 @@
 | P1-2 FR-01 “first commit” | 已修 · `1047fd4` | 删除自动提交承诺，acceptance 明确 “never auto-commits”；004 的 As-built 记录同一事实。 |
 | P2-1 ruff format | 已修 · `fcff260` | 20 个文件一次性格式化；CI 的 lint step 增加 `ruff format --check`。 |
 | P2-2 MCP 工具名前缀 | 已修 · `1047fd4` | PRD US-06 改为四个 `crewgit_*` 实名。 |
-| P2-3 仓库 URL 可达性 | 待发布动作 | 转 public 后验证匿名 `git ls-remote` 与 README 图片，再回填。 |
+| P2-3 仓库 URL 可达性 | 已修 · 发布动作 | 仓库已转 public；`git ls-remote https://github.com/kll-92/crewgit.git HEAD` 匿名可达；`v0.1.0` 已发布。 |
 | P2-4 `/api/agents` 未入表 | 已修 · `1047fd4` | 002 §13 增补该端点。 |
 
-审计第 5 节的未闭环项中，`docs/demo-output.txt` 已由修复后的 demo 重新生成；Python 3.10 由 CI matrix 覆盖；Dockerfile 仍只做 wheel CI 验证（本地 daemon 不可用，已在 004 标注）；clone 后 notes 回退文案由 `find_note` 的 refspec 覆盖并留有实现注释。
+审计第 5 节的未闭环项中，`docs/demo-output.txt` 已由修复后的 demo 重新生成；Python 3.10 由 CI matrix 覆盖；Dockerfile 仍只做 wheel CI 验证（本地 daemon 不可用，已在 004 标注）；clone 后 notes 回退文案仍未做 fresh-clone 实测，002 §12 已给出 `git fetch origin refs/notes/crewgit:refs/notes/crewgit` 的恢复命令，作为发布后已知项保留。

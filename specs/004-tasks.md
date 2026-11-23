@@ -28,12 +28,12 @@
 | P0-17 | Tests + CI | `tests/*`, `.github/workflows/ci.yml` | ruff + pytest green on 3.10–3.13 | `17-tests-ci` | done |
 | P0-18 | README + assets | `README.md`, `README.zh-CN.md`, `docs/*` | real transcript, diagram, install, comparison, limits | `18-readme` | done |
 | P0-19 | Independent audit | `docs/audit-report.md` | a second agent checks spec↔code consistency; P0 findings fixed | `19-audit` | done |
-| P0-20 | Release | tag `v0.1.0`, repo public | install from clean venv; demo passes | `20-release` | doing |
+| P0-20 | Release | tag `v0.1.0`, repo public | install from clean venv; demo passes | `20-release` | done |
 
 
 ### As-built notes (2026-11-23)
 
-- 45 tests green locally; GitHub Actions green on Python 3.10, 3.11, 3.12, 3.13 plus a wheel build.
+- 45 tests green locally and in CI on Python 3.10–3.13; GitHub Actions green on Python 3.10, 3.11, 3.12, 3.13 plus a wheel build.
 - The demo is stdlib-`unittest` based on purpose: a `pipx install` has no dev extras, and the demo must work without pytest.
 - `crewgit init` does not create a commit. Auto-committing a user's config is a side effect we refuse; the docs tell the user to review and commit it.
 - Scope locks are serialised with a cross-process file lock; SQLite alone cannot close the check-then-insert window.
@@ -75,3 +75,5 @@ If today's clock runs out, these are the things to cut — never the demo, the p
 6. Contract linter: warn when scope is wider than the task title implies.
 7. `crewgit init --from-spec` to generate tasks from a PRD section.
 8. Pre-merge conflict radar against `main` (predict conflicts before merge).
+
+- **Released:** `github.com/kll-92/crewgit` is public, tagged `v0.1.0`, with a GitHub Release and wheel. A fresh clone of the tag installs and runs `crewgit demo` in a clean venv without pytest.
