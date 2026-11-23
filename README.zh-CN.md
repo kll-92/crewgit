@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-42%20passing-b7f24a?style=flat-square" alt="42 tests">
+  <img src="https://img.shields.io/badge/tests-44%20passing-b7f24a?style=flat-square" alt="44 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
 </p>
 
@@ -277,7 +277,7 @@ CrewGit 不是编排器、不是托管 SaaS、也不是模型路由。它是你�
 
 ## 路线图
 
-- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、42 项测试。
+- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、44 项测试。
 - **Phase 1 — 团队可用：** PyPI、`crewgit-gate` GitHub Action、Codex/Aider/Gemini 适配器、merge queue、Docker 只读看板、90 秒视频。
 - **Phase 2 — 生态：** 门禁插件 SDK、签名 manifest、带 USD 上限的远程 runner、monorepo scope、Windows GA。
 - **Phase 3 — 规模：** per-agent 身份、策略包、托管只读看板、A2A/MCP 联邦。

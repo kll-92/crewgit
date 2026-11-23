@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "CrewGit contributors" }]
-keywords = ["ai-agents", "multi-agent", "git", "worktree", "code-review", "automation"]
+keywords = ["ai-agents", "multi-agent", "git", "worktree", "code-review", "automation", "claude-code", "codex", "provenance", "ai-coding"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",
@@ -35,7 +35,10 @@ crewgit = "crewgit.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/kll-92/crewgit"
+Source = "https://github.com/kll-92/crewgit"
 Issues = "https://github.com/kll-92/crewgit/issues"
+Changelog = "https://github.com/kll-92/crewgit/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/kll-92/crewgit/tree/main/docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/crewgit"]

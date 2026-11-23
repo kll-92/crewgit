@@ -128,6 +128,7 @@ def init(
         workspace = Path(root or Path.cwd()).resolve()
         paths = Paths(workspace)
         if paths.config_file.exists() and not force:
+            Git(workspace).ensure_excluded()
             console.print("[yellow]workspace already initialised; nothing to do (use --force to rewrite config)[/yellow]")
             return
         git = Git(workspace)

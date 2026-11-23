@@ -12,8 +12,8 @@ build/
 # CrewGit runtime state (never commit run artifacts or worktrees)
 .crewgit/worktrees/
 .crewgit/runs/
-.crewgit/board.db
-.crewgit/board.db-journal
+.crewgit/board.db*
+.crewgit/notes.lock
 .crewgit/locks.json
 .crewgit/server.log
 
