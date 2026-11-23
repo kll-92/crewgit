@@ -140,7 +140,11 @@ def create_app(root: Path, *, read_only: bool = False) -> FastAPI:
     def merge_run(run_id: str, payload: MergeRequest | None = Body(default=None)) -> dict[str, Any]:
         _guard_read_only()
         r = runner()
-        result = r.merge(run_id, force=bool(payload and payload.force), reason=payload.reason if payload else None)
+        result = r.merge(
+            run_id,
+            force=bool(payload and payload.force),
+            reason=payload.reason if payload else None,
+        )
         return {
             "ok": True,
             "commit": result["commit"],

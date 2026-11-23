@@ -45,7 +45,7 @@ def cart_total(items, discount=0.0):
     return round(total, 1)  # bug: cents are lost
 '''
 
-DEMO_TEST = '''import unittest
+DEMO_TEST = """import unittest
 
 from cart import cart_total
 
@@ -64,7 +64,7 @@ class CartTotalTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-'''
+"""
 
 PLAN_TASK = {
     "id": "T-100",
@@ -139,15 +139,23 @@ FIXED_TASK = {
 
 
 def _git_identity(git: Git) -> None:
-    proc = subprocess.run(["git", "config", "user.email"], cwd=str(git.root), capture_output=True, text=True)
+    proc = subprocess.run(
+        ["git", "config", "user.email"], cwd=str(git.root), capture_output=True, text=True
+    )
     if proc.returncode != 0 or not proc.stdout.strip():
-        subprocess.run(["git", "config", "user.name", "CrewGit Demo"], cwd=str(git.root), check=True)
-        subprocess.run(["git", "config", "user.email", "demo@crewgit.local"], cwd=str(git.root), check=True)
+        subprocess.run(
+            ["git", "config", "user.name", "CrewGit Demo"], cwd=str(git.root), check=True
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "demo@crewgit.local"], cwd=str(git.root), check=True
+        )
 
 
 def _commit(git: Git, message: str) -> str:
     subprocess.run(["git", "add", "-A"], cwd=str(git.root), check=True)
-    subprocess.run(["git", "commit", "-m", message], cwd=str(git.root), check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", message], cwd=str(git.root), check=True, capture_output=True
+    )
     return git.head()
 
 
@@ -262,7 +270,9 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
     _print_run(plan_run)
     if plan_run.status == "passed":
         merge = runner.merge(plan_run.run_id)
-        console.print(f"[green]✓[/green] merged as {merge['commit'][:7]}  (plan is reviewable like any branch)")
+        console.print(
+            f"[green]✓[/green] merged as {merge['commit'][:7]}  (plan is reviewable like any branch)"
+        )
 
     console.rule("[bold]04 · coder T-101 — fix inside scope")
     fix_run = runner.run_task("T-101")
@@ -270,7 +280,9 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
     _print_run(fix_run)
     if fix_run.status == "passed":
         merge = runner.merge(fix_run.run_id)
-        console.print(f"[green]✓[/green] merged as {merge['commit'][:7]}  (tests were run in an isolated worktree)")
+        console.print(
+            f"[green]✓[/green] merged as {merge['commit'][:7]}  (tests were run in an isolated worktree)"
+        )
     else:
         raise CrewGitError("the coder run failed; demo cannot continue")
 
@@ -283,7 +295,9 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
         runner.merge(rogue_run.run_id)
     except GateError as exc:
         console.print(f"[red]✗ merge refused:[/red] {exc.message}")
-    console.print("[dim]nothing outside the declared scope can reach main — not even with a good intention[/dim]")
+    console.print(
+        "[dim]nothing outside the declared scope can reach main — not even with a good intention[/dim]"
+    )
 
     console.rule("[bold]06 · coder T-102R — corrected contract")
     fixed_run = runner.run_task("T-102R")
@@ -334,7 +348,11 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
         table.add_column(column, overflow="fold")
     for item in board["tasks"]:
         latest = item["latest_run"]
-        chips = " ".join(f"{gate['name']}:{gate['status']}" for gate in latest["gates"]) if latest else "—"
+        chips = (
+            " ".join(f"{gate['name']}:{gate['status']}" for gate in latest["gates"])
+            if latest
+            else "—"
+        )
         table.add_row(item["id"], item["status"], item["title"], chips)
     console.print(table)
     console.print(

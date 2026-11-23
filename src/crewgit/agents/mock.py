@@ -137,7 +137,9 @@ Definition of done:
 
     def _review(self, ctx: RunContext) -> AgentResult:
         evidence = _evidence(ctx.prompt)
-        blocking = [f"{key}={value}" for key, value in evidence.items() if value in ("fail", "error")]
+        blocking = [
+            f"{key}={value}" for key, value in evidence.items() if value in ("fail", "error")
+        ]
         if blocking:
             verdict = {
                 "verdict": "revise",

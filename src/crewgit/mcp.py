@@ -154,15 +154,27 @@ def dispatch(runner: Runner, message: dict[str, Any]) -> dict[str, Any] | None:
             data = call_tool(runner, name, arguments)
             return _ok(
                 message,
-                {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, indent=2)}], "isError": False},
+                {
+                    "content": [
+                        {"type": "text", "text": json.dumps(data, ensure_ascii=False, indent=2)}
+                    ],
+                    "isError": False,
+                },
             )
         except CrewGitError as exc:
             return _ok(
                 message,
-                {"content": [{"type": "text", "text": json.dumps(exc.to_dict(), ensure_ascii=False)}], "isError": True},
+                {
+                    "content": [
+                        {"type": "text", "text": json.dumps(exc.to_dict(), ensure_ascii=False)}
+                    ],
+                    "isError": True,
+                },
             )
         except Exception as exc:  # a tool crash must not kill the server
-            return _ok(message, {"content": [{"type": "text", "text": f"error: {exc}"}], "isError": True})
+            return _ok(
+                message, {"content": [{"type": "text", "text": f"error: {exc}"}], "isError": True}
+            )
     return _error(message, -32601, f"method not found: {method}")
 
 

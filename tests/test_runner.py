@@ -25,7 +25,11 @@ def test_run_merge_and_provenance(workspace: Path) -> None:
 
     merged = runner.merge(run.run_id)
     body = subprocess.run(
-        ["git", "log", "-1", "--format=%B"], cwd=str(workspace), capture_output=True, text=True, check=True
+        ["git", "log", "-1", "--format=%B"],
+        cwd=str(workspace),
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     assert "Crewgit-Task: T-1" in body
     assert "Crewgit-Run: " in body and "Crewgit-Contract-Hash: " in body
@@ -49,7 +53,9 @@ def test_run_can_be_recovered_from_git_notes(workspace: Path) -> None:
     assert recovered.commit == run.commit
 
 
-def test_reviewer_cannot_write_untracked_files(workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reviewer_cannot_write_untracked_files(
+    workspace: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class EvilReviewer(Adapter):
         name = "evil"
 
@@ -75,7 +81,9 @@ def test_reviewer_cannot_write_untracked_files(workspace: Path, monkeypatch: pyt
     assert run.status == "failed"
 
 
-def test_unparseable_review_goes_to_a_human(workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_unparseable_review_goes_to_a_human(
+    workspace: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class ChattyReviewer(Adapter):
         name = "chatty"
 
@@ -125,7 +133,9 @@ def test_scope_violation_is_blocked(workspace: Path) -> None:
             "id": "T-2",
             "title": "sneaky packaging edit",
             "scope": ["cart.py"],
-            "mock_actions": [{"op": "write", "path": "pyproject.toml", "content": '[project]\nversion = "9"\n'}],
+            "mock_actions": [
+                {"op": "write", "path": "pyproject.toml", "content": '[project]\nversion = "9"\n'}
+            ],
         },
     )
     git_commit(workspace, "task T-2")
@@ -146,7 +156,13 @@ def test_dependencies_block_a_run(workspace: Path) -> None:
     )
     write_task_file(
         workspace / "tasks" / "T-3.yaml",
-        {"id": "T-3", "title": "second", "scope": ["test_cart.py"], "depends_on": ["T-2"], "mock_actions": []},
+        {
+            "id": "T-3",
+            "title": "second",
+            "scope": ["test_cart.py"],
+            "depends_on": ["T-2"],
+            "mock_actions": [],
+        },
     )
     git_commit(workspace, "tasks T-2 T-3")
     with pytest.raises(ContractError) as exc:
@@ -178,6 +194,10 @@ def test_force_merge_records_the_override(workspace: Path) -> None:
     merged = runner.merge(run.run_id, force=True, reason="demo of an audited override")
     assert merged["run"].status == "forced"
     body = subprocess.run(
-        ["git", "log", "-1", "--format=%B"], cwd=str(workspace), capture_output=True, text=True, check=True
+        ["git", "log", "-1", "--format=%B"],
+        cwd=str(workspace),
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     assert "Crewgit-Override: demo of an audited override" in body

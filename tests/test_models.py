@@ -41,7 +41,9 @@ def test_scope_violations_list_outside_paths() -> None:
 
 
 def test_scope_forbid_wins() -> None:
-    assert scope_violations(["docs/private/x.md"], ["docs/**"], ["docs/private/**"]) == ["docs/private/x.md"]
+    assert scope_violations(["docs/private/x.md"], ["docs/**"], ["docs/private/**"]) == [
+        "docs/private/x.md"
+    ]
 
 
 def test_task_requires_valid_scope() -> None:
@@ -86,19 +88,43 @@ def test_task_status_derivation() -> None:
     assert task_status(task, [], False)[0] == "blocked"
 
     running = Run(
-        run_id="R-1", task_id="T-1", title="x", agent="coder", adapter="mock",
-        base_commit="b", branch="br", worktree="wt", prompt_sha256="p", status="running",
+        run_id="R-1",
+        task_id="T-1",
+        title="x",
+        agent="coder",
+        adapter="mock",
+        base_commit="b",
+        branch="br",
+        worktree="wt",
+        prompt_sha256="p",
+        status="running",
     )
     assert task_status(task, [running], True)[0] == "running"
 
     passed = Run(
-        run_id="R-2", task_id="T-1", title="x", agent="coder", adapter="mock",
-        base_commit="b", branch="br", worktree="wt", prompt_sha256="p", status="passed",
+        run_id="R-2",
+        task_id="T-1",
+        title="x",
+        agent="coder",
+        adapter="mock",
+        base_commit="b",
+        branch="br",
+        worktree="wt",
+        prompt_sha256="p",
+        status="passed",
     )
     assert task_status(task, [passed], True)[0] == "review"
 
     merged = Run(
-        run_id="R-3", task_id="T-1", title="x", agent="coder", adapter="mock",
-        base_commit="b", branch="br", worktree="wt", prompt_sha256="p", status="merged",
+        run_id="R-3",
+        task_id="T-1",
+        title="x",
+        agent="coder",
+        adapter="mock",
+        base_commit="b",
+        branch="br",
+        worktree="wt",
+        prompt_sha256="p",
+        status="merged",
     )
     assert task_status(task, [passed, merged], True)[0] == "done"

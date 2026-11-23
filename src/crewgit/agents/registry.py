@@ -20,5 +20,7 @@ def build_adapter(config: AgentConfig) -> Adapter:
     adapter_class = ADAPTERS.get(config.adapter)
     if adapter_class is None:
         known = ", ".join(sorted(ADAPTERS))
-        raise ContractError(f"unknown adapter '{config.adapter}' (known: {known})", detail={"field": "adapter"})
+        raise ContractError(
+            f"unknown adapter '{config.adapter}' (known: {known})", detail={"field": "adapter"}
+        )
     return adapter_class(config)

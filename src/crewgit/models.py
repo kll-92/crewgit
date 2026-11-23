@@ -111,7 +111,9 @@ def glob_match(path: str, pattern: str) -> bool:
     return re.fullmatch(glob_to_regex(pattern), path.strip().replace("\\", "/")) is not None
 
 
-def scope_violations(paths: Iterable[str], scope: Iterable[str], forbid: Iterable[str] = ()) -> list[str]:
+def scope_violations(
+    paths: Iterable[str], scope: Iterable[str], forbid: Iterable[str] = ()
+) -> list[str]:
     """Return paths that fall outside the declared scope (or inside forbid)."""
     scope_list = list(scope)
     forbid_list = list(forbid)
@@ -167,7 +169,9 @@ class Budget:
         for name in ("max_files", "max_lines"):
             value = getattr(self, name)
             if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
-                raise ContractError(f"budget.{name} must be a positive integer", detail={"field": f"budget.{name}"})
+                raise ContractError(
+                    f"budget.{name} must be a positive integer", detail={"field": f"budget.{name}"}
+                )
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None, defaults: Budget | None = None) -> Budget:
@@ -202,10 +206,15 @@ class Acceptance:
         for key in ("tests", "lint"):
             value = data.get(key)
             if value is not None and not isinstance(value, str):
-                raise ContractError(f"acceptance.{key} must be a string or null", detail={"field": f"acceptance.{key}"})
+                raise ContractError(
+                    f"acceptance.{key} must be a string or null",
+                    detail={"field": f"acceptance.{key}"},
+                )
         review = data.get("review", True)
         if not isinstance(review, bool):
-            raise ContractError("acceptance.review must be a boolean", detail={"field": "acceptance.review"})
+            raise ContractError(
+                "acceptance.review must be a boolean", detail={"field": "acceptance.review"}
+            )
         return cls(
             tests=data.get("tests"),
             lint=data.get("lint"),
@@ -250,22 +259,36 @@ class Task:
             raise ContractError("task contract must be a mapping", detail={"field": "$"})
         task_id = data.get("id")
         if not isinstance(task_id, str) or not TASK_ID_RE.match(task_id):
-            raise ContractError("task.id must match ^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$", detail={"field": "id"})
+            raise ContractError(
+                "task.id must match ^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$", detail={"field": "id"}
+            )
         title = data.get("title")
         if not isinstance(title, str) or not 1 <= len(title) <= 120:
             raise ContractError("task.title must be 1-120 characters", detail={"field": "title"})
 
         scope = data.get("scope")
-        if not isinstance(scope, list) or not scope or not all(isinstance(item, str) and item.strip() for item in scope):
-            raise ContractError("task.scope must be a non-empty list of path globs", detail={"field": "scope"})
+        if (
+            not isinstance(scope, list)
+            or not scope
+            or not all(isinstance(item, str) and item.strip() for item in scope)
+        ):
+            raise ContractError(
+                "task.scope must be a non-empty list of path globs", detail={"field": "scope"}
+            )
 
         depends_on = data.get("depends_on", []) or []
-        if not isinstance(depends_on, list) or not all(isinstance(item, str) for item in depends_on):
-            raise ContractError("task.depends_on must be a list of task ids", detail={"field": "depends_on"})
+        if not isinstance(depends_on, list) or not all(
+            isinstance(item, str) for item in depends_on
+        ):
+            raise ContractError(
+                "task.depends_on must be a list of task ids", detail={"field": "depends_on"}
+            )
 
         forbid = data.get("forbid", []) or []
         if not isinstance(forbid, list) or not all(isinstance(item, str) for item in forbid):
-            raise ContractError("task.forbid must be a list of path globs", detail={"field": "forbid"})
+            raise ContractError(
+                "task.forbid must be a list of path globs", detail={"field": "forbid"}
+            )
 
         agent = data.get("agent")
         if agent is not None and not isinstance(agent, str):
@@ -325,21 +348,32 @@ def _validate_mock_actions(actions: Any) -> None:
             raise ContractError(f"{field_name} must be a mapping", detail={"field": field_name})
         op = action.get("op")
         if op not in ("write", "patch", "delete"):
-            raise ContractError(f"{field_name}.op must be write|patch|delete", detail={"field": f"{field_name}.op"})
+            raise ContractError(
+                f"{field_name}.op must be write|patch|delete", detail={"field": f"{field_name}.op"}
+            )
         path = action.get("path")
         if not isinstance(path, str) or not path.strip():
-            raise ContractError(f"{field_name}.path is required", detail={"field": f"{field_name}.path"})
+            raise ContractError(
+                f"{field_name}.path is required", detail={"field": f"{field_name}.path"}
+            )
         if op == "write" and not isinstance(action.get("content"), str):
-            raise ContractError(f"{field_name}.content is required for write", detail={"field": f"{field_name}.content"})
+            raise ContractError(
+                f"{field_name}.content is required for write",
+                detail={"field": f"{field_name}.content"},
+            )
         if op == "patch" and not isinstance(action.get("find"), str):
-            raise ContractError(f"{field_name}.find is required for patch", detail={"field": f"{field_name}.find"})
+            raise ContractError(
+                f"{field_name}.find is required for patch", detail={"field": f"{field_name}.find"}
+            )
 
 
 def load_task_file(path: Path, *, default_budget: Budget | None = None) -> Task:
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:  # pragma: no cover - exercised via CLI
-        raise ContractError(f"invalid YAML in {path.name}: {exc}", detail={"file": str(path)}) from exc
+        raise ContractError(
+            f"invalid YAML in {path.name}: {exc}", detail={"file": str(path)}
+        ) from exc
     return Task.from_dict(data, path=path, default_budget=default_budget)
 
 
@@ -351,7 +385,9 @@ def load_tasks(tasks_dir: Path, *, default_budget: Budget | None = None) -> dict
     for path in sorted(list(directory.glob("*.yaml")) + list(directory.glob("*.yml"))):
         task = load_task_file(path, default_budget=default_budget)
         if task.id in tasks:
-            raise ContractError(f"duplicate task id: {task.id}", detail={"field": "id", "file": str(path)})
+            raise ContractError(
+                f"duplicate task id: {task.id}", detail={"field": "id", "file": str(path)}
+            )
         tasks[task.id] = task
     check_dependencies(tasks)
     return tasks
@@ -362,7 +398,9 @@ def check_dependencies(tasks: dict[str, Task]) -> None:
     for task_id, deps in depends.items():
         for dep in deps:
             if dep == task_id:
-                raise ContractError(f"task {task_id} depends on itself", detail={"field": "depends_on"})
+                raise ContractError(
+                    f"task {task_id} depends on itself", detail={"field": "depends_on"}
+                )
             if dep not in tasks:
                 raise ContractError(
                     f"task {task_id} depends on unknown task {dep}",
@@ -371,7 +409,9 @@ def check_dependencies(tasks: dict[str, Task]) -> None:
     cycles = find_cycles(depends)
     if cycles:
         readable = " -> ".join(cycles[0])
-        raise ContractError(f"dependency cycle detected: {readable}", detail={"field": "depends_on"})
+        raise ContractError(
+            f"dependency cycle detected: {readable}", detail={"field": "depends_on"}
+        )
 
 
 # --------------------------------------------------------------------------- runs
@@ -388,7 +428,12 @@ class GateResult:
     duration_ms: int = 0
 
     def to_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "status": self.status, "detail": self.detail, "duration_ms": self.duration_ms}
+        return {
+            "name": self.name,
+            "status": self.status,
+            "detail": self.detail,
+            "duration_ms": self.duration_ms,
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> GateResult:

@@ -20,7 +20,9 @@ def test_worktree_commit_diff_note_merge(workspace: Path) -> None:
     stat = git.numstat(base, commit)
     assert stat["files"] == 1 and stat["insertions"] == 1
 
-    git.note_add(commit, json.dumps({"run_id": "R-1"}), lock_path=workspace / ".crewgit" / "notes.lock")
+    git.note_add(
+        commit, json.dumps({"run_id": "R-1"}), lock_path=workspace / ".crewgit" / "notes.lock"
+    )
     note = git.note_show(commit)
     assert note is not None and json.loads(note)["run_id"] == "R-1"
 

@@ -136,7 +136,9 @@ class Runner:
             return self._build_dry_run(task, name, agent_config, adapter)
 
         if not self.git.has_head():
-            raise GitError("repository has no commits yet; make an initial commit before running agents")
+            raise GitError(
+                "repository has no commits yet; make an initial commit before running agents"
+            )
         if not self.git.is_clean():
             raise GitError(
                 "the main worktree is dirty; commit or stash your changes before running agents "
@@ -147,7 +149,9 @@ class Runner:
             missing = [
                 dependency
                 for dependency in task.depends_on
-                if not any(run.status in ("merged", "forced") for run in grouped.get(dependency, []))
+                if not any(
+                    run.status in ("merged", "forced") for run in grouped.get(dependency, [])
+                )
             ]
             if missing:
                 raise ContractError(
@@ -215,7 +219,9 @@ class Runner:
             try:
                 result = adapter.run(context)
             except AgentError as exc:
-                result = AgentResult(exit_code=1, stderr=f"{exc.message}\n{exc.detail or ''}".strip())
+                result = AgentResult(
+                    exit_code=1, stderr=f"{exc.message}\n{exc.detail or ''}".strip()
+                )
             except Exception as exc:  # an adapter crash is a failed run, not a crashed CLI
                 result = AgentResult(exit_code=1, stderr=f"adapter crashed: {exc}")
             run.duration_ms = int((time.monotonic() - started) * 1000)
@@ -283,11 +289,15 @@ class Runner:
         run.status = gate_status
         if gate_status != "passed":
             failing = [gate for gate in gates if gate.status in ("fail", "error")]
-            run.error = "; ".join(f"{gate.name}: {gate.detail.splitlines()[0]}" for gate in failing)[:1000]
+            run.error = "; ".join(
+                f"{gate.name}: {gate.detail.splitlines()[0]}" for gate in failing
+            )[:1000]
 
         if result.exit_code != 0:
             run.status = "failed"
-            run.error = f"agent exited with {result.exit_code}" + (f": {run.error}" if run.error else "")
+            run.error = f"agent exited with {result.exit_code}" + (
+                f": {run.error}" if run.error else ""
+            )
 
         self._persist(run)
 
@@ -333,8 +343,12 @@ class Runner:
                     timeout_s=self.config.gates.timeout_s,
                     env=scrubbed_env(
                         self.config.passthrough,
-                        extra={"CREWGIT_RUN": run.run_id, "CREWGIT_TASK": task.id, "CREWGIT_AGENT": reviewer_name},
-                        ),
+                        extra={
+                            "CREWGIT_RUN": run.run_id,
+                            "CREWGIT_TASK": task.id,
+                            "CREWGIT_AGENT": reviewer_name,
+                        },
+                    ),
                     repo_root=self.root,
                 )
             )
@@ -352,9 +366,7 @@ class Runner:
             f"Crewgit-Agent: {run.agent}",
             f"Crewgit-Contract-Hash: {task.contract_hash}",
         ]
-        return "\n".join(
-            [f"feat({task.id}): {task.title}", "", *body_lines, "", *trailers, ""]
-        )
+        return "\n".join([f"feat({task.id}): {task.title}", "", *body_lines, "", *trailers, ""])
 
     def _persist(self, run: Run) -> None:
         # Gate output can contain whatever the agent or tests printed; redact env values.
@@ -369,7 +381,9 @@ class Runner:
             try:
                 self.git.note_add(run.commit, payload, lock_path=self.paths.notes_lock)
             except GitError as exc:  # provenance failure must be visible, not silent
-                run.error = (run.error + "; " if run.error else "") + f"provenance note failed: {exc.message}"
+                run.error = (
+                    run.error + "; " if run.error else ""
+                ) + f"provenance note failed: {exc.message}"
         self.store.upsert_run(run)
 
     # ------------------------------------------------------------------ parallel
@@ -537,7 +551,9 @@ class Runner:
             return run
         raise ContractError(f"unknown run '{run_id}'")
 
-    def merge(self, run_id: str, *, force: bool = False, reason: str | None = None) -> dict[str, Any]:
+    def merge(
+        self, run_id: str, *, force: bool = False, reason: str | None = None
+    ) -> dict[str, Any]:
         run = self.load_run(run_id)
         if not force and run.status not in ("passed",):
             raise GateError(
@@ -548,7 +564,9 @@ class Runner:
         if not self.git.branch_exists(run.branch):
             raise GitError(f"branch {run.branch} no longer exists")
         if not self.git.has_head():
-            raise GitError("repository has no commits yet; make an initial commit before running agents")
+            raise GitError(
+                "repository has no commits yet; make an initial commit before running agents"
+            )
         if not self.git.is_clean():
             raise GitError("main worktree is dirty; commit or stash before merging")
 
@@ -684,7 +702,15 @@ class Runner:
             for run in runs:
                 entry = agents.setdefault(
                     run.agent,
-                    {"runs": 0, "passed": 0, "failed": 0, "merged": 0, "cost_usd": 0.0, "duration_ms": 0, "unmetered": 0},
+                    {
+                        "runs": 0,
+                        "passed": 0,
+                        "failed": 0,
+                        "merged": 0,
+                        "cost_usd": 0.0,
+                        "duration_ms": 0,
+                        "unmetered": 0,
+                    },
                 )
                 entry["runs"] += 1
                 if run.status in ("passed", "merged", "forced"):
@@ -731,8 +757,18 @@ class Runner:
             checks.append({"name": name, "status": status, "detail": detail})
 
         add("repo", "pass" if self.git.is_repo() else "fail", str(self.root))
-        add("main worktree", "pass" if self.git.is_clean() else "warn", "clean" if self.git.is_clean() else "uncommitted changes present")
-        add("notes ref", "pass" if self.git.has_notes_ref() else "warn", "refs/notes/crewgit" if self.git.has_notes_ref() else "missing; run a task to create it")
+        add(
+            "main worktree",
+            "pass" if self.git.is_clean() else "warn",
+            "clean" if self.git.is_clean() else "uncommitted changes present",
+        )
+        add(
+            "notes ref",
+            "pass" if self.git.has_notes_ref() else "warn",
+            "refs/notes/crewgit"
+            if self.git.has_notes_ref()
+            else "missing; run a task to create it",
+        )
 
         locks = self.store.active_locks()
         add("locks", "pass" if not locks else "warn", f"{len(locks)} active lock(s)")
@@ -743,14 +779,26 @@ class Runner:
             for path in self.paths.worktrees_dir.iterdir():
                 if path.is_dir() and str(path) not in registered:
                     orphans.append(path.name)
-        add("worktrees", "pass" if not orphans else "warn", f"{len(orphans)} orphan worktree(s)" if orphans else "ok")
+        add(
+            "worktrees",
+            "pass" if not orphans else "warn",
+            f"{len(orphans)} orphan worktree(s)" if orphans else "ok",
+        )
 
         runs = self.store.list_runs()
         running = [run for run in runs if run.status == "running"]
-        add("stale runs", "pass" if not running else "warn", f"{len(running)} run(s) marked running")
+        add(
+            "stale runs", "pass" if not running else "warn", f"{len(running)} run(s) marked running"
+        )
 
         missing_task = sorted({run.task_id for run in runs if run.task_id not in self.tasks()})
-        add("task contracts", "pass" if not missing_task else "warn", f"missing contracts: {', '.join(missing_task)}" if missing_task else "all runs have contracts")
+        add(
+            "task contracts",
+            "pass" if not missing_task else "warn",
+            f"missing contracts: {', '.join(missing_task)}"
+            if missing_task
+            else "all runs have contracts",
+        )
 
         return checks
 

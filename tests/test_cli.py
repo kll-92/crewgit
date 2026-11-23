@@ -61,10 +61,27 @@ def test_task_new_and_check(tmp_path: Path) -> None:
 def test_dry_run_does_not_execute(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True)
     assert runner.invoke(app, ["init", "-C", str(tmp_path)]).exit_code == 0
-    assert runner.invoke(
-        app, ["task", "new", "-C", str(tmp_path), "--id", "T-001", "--title", "x", "--scope", "src/**"]
-    ).exit_code == 0
+    assert (
+        runner.invoke(
+            app,
+            [
+                "task",
+                "new",
+                "-C",
+                str(tmp_path),
+                "--id",
+                "T-001",
+                "--title",
+                "x",
+                "--scope",
+                "src/**",
+            ],
+        ).exit_code
+        == 0
+    )
     plan = runner.invoke(app, ["run", "T-001", "-C", str(tmp_path), "--dry-run", "--json"])
     assert plan.exit_code == 0
     assert "prompt_sha256" in plan.stdout
-    assert not (tmp_path / ".crewgit" / "worktrees").exists() or not any((tmp_path / ".crewgit" / "worktrees").iterdir())
+    assert not (tmp_path / ".crewgit" / "worktrees").exists() or not any(
+        (tmp_path / ".crewgit" / "worktrees").iterdir()
+    )

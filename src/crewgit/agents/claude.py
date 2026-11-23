@@ -22,7 +22,15 @@ class ClaudeAdapter(Adapter):
         if not binary:
             raise AgentError("claude CLI not found on PATH; install it or use the generic adapter")
         permission = str(self.config.extra.get("permission_mode", "acceptEdits"))
-        command = [binary, "-p", ctx.prompt, "--output-format", "json", "--permission-mode", permission]
+        command = [
+            binary,
+            "-p",
+            ctx.prompt,
+            "--output-format",
+            "json",
+            "--permission-mode",
+            permission,
+        ]
         try:
             proc = subprocess.run(
                 command,
@@ -33,7 +41,11 @@ class ClaudeAdapter(Adapter):
                 timeout=ctx.timeout_s,
             )
         except subprocess.TimeoutExpired:
-            return AgentResult(exit_code=124, stderr=f"claude timed out after {ctx.timeout_s}s", model=self.model_label)
+            return AgentResult(
+                exit_code=124,
+                stderr=f"claude timed out after {ctx.timeout_s}s",
+                model=self.model_label,
+            )
 
         stdout = proc.stdout or ""
         result_text = stdout

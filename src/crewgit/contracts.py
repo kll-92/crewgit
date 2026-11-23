@@ -51,7 +51,11 @@ def worktree_name(task_id: str, run_id: str) -> str:
 def build_prompt(task: Task, project: str, agent_name: str) -> str:
     scope_lines = "\n".join(f"- {pattern}" for pattern in task.scope)
     forbid = list(task.forbid)
-    forbid_text = "\n".join(f"- {pattern}" for pattern in forbid) if forbid else "- (none beyond the always-forbidden paths)"
+    forbid_text = (
+        "\n".join(f"- {pattern}" for pattern in forbid)
+        if forbid
+        else "- (none beyond the always-forbidden paths)"
+    )
     budget = task.budget
     if task.acceptance.tests_specified and task.acceptance.tests:
         tests = task.acceptance.tests

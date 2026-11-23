@@ -63,20 +63,34 @@ class AgentConfig:
     @classmethod
     def from_dict(cls, name: str, data: dict[str, Any]) -> AgentConfig:
         if not isinstance(data, dict):
-            raise ContractError(f"agent {name} must be a mapping", detail={"field": f"agents.{name}"})
+            raise ContractError(
+                f"agent {name} must be a mapping", detail={"field": f"agents.{name}"}
+            )
         adapter = data.get("adapter")
         if not isinstance(adapter, str) or not adapter:
-            raise ContractError(f"agent {name} requires an adapter", detail={"field": f"agents.{name}.adapter"})
+            raise ContractError(
+                f"agent {name} requires an adapter", detail={"field": f"agents.{name}.adapter"}
+            )
         role = data.get("role", "") or ""
         if not isinstance(role, str):
-            raise ContractError(f"agent {name} role must be a string", detail={"field": f"agents.{name}.role"})
+            raise ContractError(
+                f"agent {name} role must be a string", detail={"field": f"agents.{name}.role"}
+            )
         command = data.get("command")
         if command is not None and not isinstance(command, str):
-            raise ContractError(f"agent {name} command must be a string", detail={"field": f"agents.{name}.command"})
+            raise ContractError(
+                f"agent {name} command must be a string", detail={"field": f"agents.{name}.command"}
+            )
         model = data.get("model")
         if model is not None and not isinstance(model, str):
-            raise ContractError(f"agent {name} model must be a string", detail={"field": f"agents.{name}.model"})
-        extra = {key: value for key, value in data.items() if key not in {"adapter", "role", "command", "model"}}
+            raise ContractError(
+                f"agent {name} model must be a string", detail={"field": f"agents.{name}.model"}
+            )
+        extra = {
+            key: value
+            for key, value in data.items()
+            if key not in {"adapter", "role", "command", "model"}
+        }
         return cls(name=name, adapter=adapter, role=role, command=command, model=model, extra=extra)
 
     def to_dict(self) -> dict[str, Any]:
@@ -108,10 +122,14 @@ class GateConfig:
             raise ContractError("gates must be a mapping", detail={"field": "gates"})
         fail_fast = data.get("fail_fast", True)
         if not isinstance(fail_fast, bool):
-            raise ContractError("gates.fail_fast must be a boolean", detail={"field": "gates.fail_fast"})
+            raise ContractError(
+                "gates.fail_fast must be a boolean", detail={"field": "gates.fail_fast"}
+            )
         timeout_s = data.get("timeout_s", 600)
         if not isinstance(timeout_s, int) or timeout_s <= 0:
-            raise ContractError("gates.timeout_s must be a positive integer", detail={"field": "gates.timeout_s"})
+            raise ContractError(
+                "gates.timeout_s must be a positive integer", detail={"field": "gates.timeout_s"}
+            )
 
         lint = data.get("lint") or {}
         tests = data.get("tests") or {}
@@ -120,12 +138,19 @@ class GateConfig:
         tests_cmd = (tests or {}).get("command") if isinstance(tests, dict) else None
         for name, value in (("lint", lint_cmd), ("tests", tests_cmd)):
             if value is not None and not isinstance(value, str):
-                raise ContractError(f"gates.{name}.command must be a string or null", detail={"field": f"gates.{name}.command"})
+                raise ContractError(
+                    f"gates.{name}.command must be a string or null",
+                    detail={"field": f"gates.{name}.command"},
+                )
 
         mode = (review or {}).get("mode", "agent") if isinstance(review, dict) else "agent"
         if mode not in ("off", "agent"):
-            raise ContractError("gates.review.mode must be off|agent", detail={"field": "gates.review.mode"})
-        review_agent = (review or {}).get("agent", "reviewer") if isinstance(review, dict) else "reviewer"
+            raise ContractError(
+                "gates.review.mode must be off|agent", detail={"field": "gates.review.mode"}
+            )
+        review_agent = (
+            (review or {}).get("agent", "reviewer") if isinstance(review, dict) else "reviewer"
+        )
 
         return cls(
             fail_fast=fail_fast,
@@ -161,7 +186,9 @@ class Config:
     def agent(self, name: str) -> AgentConfig:
         if name not in self.agents:
             known = ", ".join(sorted(self.agents)) or "none"
-            raise ContractError(f"unknown agent '{name}' (known: {known})", detail={"field": "agents"})
+            raise ContractError(
+                f"unknown agent '{name}' (known: {known})", detail={"field": "agents"}
+            )
         return self.agents[name]
 
     def to_dict(self) -> dict[str, Any]:
@@ -237,23 +264,34 @@ def load_config(root: Path) -> Config:
 
     version = raw.get("version", 1)
     if version != 1:
-        raise ContractError(f"unsupported config version {version}; expected 1", detail={"field": "version"})
+        raise ContractError(
+            f"unsupported config version {version}; expected 1", detail={"field": "version"}
+        )
     project = raw.get("project") or Path(root).name
     if not isinstance(project, str):
         raise ContractError("project must be a string", detail={"field": "project"})
     branch = raw.get("default_branch", DEFAULT_BRANCH)
     if not isinstance(branch, str) or not branch:
-        raise ContractError("default_branch must be a non-empty string", detail={"field": "default_branch"})
+        raise ContractError(
+            "default_branch must be a non-empty string", detail={"field": "default_branch"}
+        )
 
     agents_raw = raw.get("agents") or {}
     if not isinstance(agents_raw, dict) or not agents_raw:
-        raise ContractError("config.agents must define at least one agent", detail={"field": "agents"})
+        raise ContractError(
+            "config.agents must define at least one agent", detail={"field": "agents"}
+        )
     agents = {name: AgentConfig.from_dict(name, data) for name, data in agents_raw.items()}
 
     environment = raw.get("environment") or {}
-    passthrough = (environment or {}).get("passthrough", []) if isinstance(environment, dict) else []
+    passthrough = (
+        (environment or {}).get("passthrough", []) if isinstance(environment, dict) else []
+    )
     if not isinstance(passthrough, list) or not all(isinstance(item, str) for item in passthrough):
-        raise ContractError("environment.passthrough must be a list of strings", detail={"field": "environment.passthrough"})
+        raise ContractError(
+            "environment.passthrough must be a list of strings",
+            detail={"field": "environment.passthrough"},
+        )
 
     gates = GateConfig.from_dict(raw.get("gates"))
     if gates.review_mode == "agent" and gates.review_agent and gates.review_agent not in agents:
@@ -281,7 +319,9 @@ def write_default_config(root: Path, project: str, branch: str = DEFAULT_BRANCH)
     return paths.config_file
 
 
-def scrubbed_env(passthrough: list[str] | None = None, extra: dict[str, str] | None = None) -> dict[str, str]:
+def scrubbed_env(
+    passthrough: list[str] | None = None, extra: dict[str, str] | None = None
+) -> dict[str, str]:
     """Environment allowlist for agents: no API keys by accident."""
     allowed = set(passthrough or [])
     env = {

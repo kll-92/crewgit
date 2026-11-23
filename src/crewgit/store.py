@@ -71,7 +71,9 @@ class Store:
             conn.execute("PRAGMA journal_mode=WAL")
             return conn
         except sqlite3.Error as exc:  # pragma: no cover
-            raise StoreError(f"cannot open board database: {exc}", detail={"path": str(self.path)}) from exc
+            raise StoreError(
+                f"cannot open board database: {exc}", detail={"path": str(self.path)}
+            ) from exc
 
     def _init(self) -> None:
         with self._connect() as conn:
@@ -131,27 +133,29 @@ class Store:
 
     # ------------------------------------------------------------------ locks
 
-    def acquire_locks(self, run_id: str, task_id: str, patterns: list[str], ttl_s: int) -> list[str]:
+    def acquire_locks(
+        self, run_id: str, task_id: str, patterns: list[str], ttl_s: int
+    ) -> list[str]:
         now = time.time()
         expires = now + max(int(ttl_s), 1)
         # Serialise the read-check-write across processes; SQLite alone cannot.
         with file_lock(self.path.with_name(self.path.name + ".lock")), self._connect() as conn:
-                conn.execute("DELETE FROM locks WHERE expires_at < ?", (now,))
-                rows = conn.execute(
-                    "SELECT pattern, run_id, task_id FROM locks WHERE run_id != ?",
-                    (run_id,),
-                ).fetchall()
-                conflicts = [
-                    f"{row['pattern']} held by {row['run_id']} ({row['task_id']})"
-                    for row in rows
-                    if any(patterns_overlap(pattern, row["pattern"]) for pattern in patterns)
-                ]
-                if conflicts:
-                    return conflicts
-                conn.executemany(
-                    "INSERT INTO locks (pattern, run_id, task_id, acquired_at, expires_at) VALUES (?, ?, ?, ?, ?)",
-                    [(pattern, run_id, task_id, now, expires) for pattern in patterns],
-                )
+            conn.execute("DELETE FROM locks WHERE expires_at < ?", (now,))
+            rows = conn.execute(
+                "SELECT pattern, run_id, task_id FROM locks WHERE run_id != ?",
+                (run_id,),
+            ).fetchall()
+            conflicts = [
+                f"{row['pattern']} held by {row['run_id']} ({row['task_id']})"
+                for row in rows
+                if any(patterns_overlap(pattern, row["pattern"]) for pattern in patterns)
+            ]
+            if conflicts:
+                return conflicts
+            conn.executemany(
+                "INSERT INTO locks (pattern, run_id, task_id, acquired_at, expires_at) VALUES (?, ?, ?, ?, ?)",
+                [(pattern, run_id, task_id, now, expires) for pattern in patterns],
+            )
         return []
 
     def release_locks(self, run_id: str) -> None:

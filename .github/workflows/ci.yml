@@ -27,7 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
       - name: Lint
-        run: python -m ruff check src tests
+        run: |
+          python -m ruff check src tests
+          python -m ruff format --check src tests
       - name: Test (includes the offline demo)
         run: python -m pytest -q
 

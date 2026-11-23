@@ -39,7 +39,9 @@ def _tail(text: str, limit: int) -> str:
     return "…" + text[-limit:]
 
 
-def run_command(command: str, cwd: Path, env: dict[str, str], timeout_s: int, tail: int = 4000) -> tuple[int, str]:
+def run_command(
+    command: str, cwd: Path, env: dict[str, str], timeout_s: int, tail: int = 4000
+) -> tuple[int, str]:
     started = time.monotonic()
     try:
         proc = subprocess.run(
@@ -84,7 +86,13 @@ class GateEngine:
     def evaluate(self, diff: DiffInfo) -> tuple[list[GateResult], str]:
         results: list[GateResult] = []
         final_status = "passed"
-        checks = (self.gate_scope, self.gate_budget, self.gate_lint, self.gate_tests, self.gate_review)
+        checks = (
+            self.gate_scope,
+            self.gate_budget,
+            self.gate_lint,
+            self.gate_tests,
+            self.gate_review,
+        )
         for check in checks:
             self._previous = results
             result = check(diff)
@@ -119,8 +127,15 @@ class GateEngine:
         if files > budget.max_files:
             return GateResult("budget", "fail", f"{files} files > limit {budget.max_files}", ms)
         if lines > budget.max_lines:
-            return GateResult("budget", "fail", f"{lines} changed lines > limit {budget.max_lines}", ms)
-        return GateResult("budget", "pass", f"{lines}/{budget.max_lines} lines, {files}/{budget.max_files} files", ms)
+            return GateResult(
+                "budget", "fail", f"{lines} changed lines > limit {budget.max_lines}", ms
+            )
+        return GateResult(
+            "budget",
+            "pass",
+            f"{lines}/{budget.max_lines} lines, {files}/{budget.max_files} files",
+            ms,
+        )
 
     def _command_for(self, name: str) -> tuple[str | None, str]:
         acceptance = self.task.acceptance
@@ -140,8 +155,12 @@ class GateEngine:
         started = time.monotonic()
         command, source = self._command_for(name)
         if not command:
-            return GateResult(name, "skip", "no command configured", int((time.monotonic() - started) * 1000))
-        code, output = run_command(command, self.worktree, self.env, self.config.gates.timeout_s, tail=tail)
+            return GateResult(
+                name, "skip", "no command configured", int((time.monotonic() - started) * 1000)
+            )
+        code, output = run_command(
+            command, self.worktree, self.env, self.config.gates.timeout_s, tail=tail
+        )
         ms = int((time.monotonic() - started) * 1000)
         if code == 0:
             summary = _tail(output.splitlines()[-1] if output else "ok", 120)
@@ -180,9 +199,13 @@ class GateEngine:
         ms = int((time.monotonic() - started) * 1000)
 
         if self.git.has_changes(self.worktree):
-            return GateResult("review", "fail", "reviewer_boundary_violation: reviewer modified the worktree", ms)
+            return GateResult(
+                "review", "fail", "reviewer_boundary_violation: reviewer modified the worktree", ms
+            )
         if verdict is None:
-            return GateResult("review", "error", "review output was not valid JSON; escalating to human", ms)
+            return GateResult(
+                "review", "error", "review output was not valid JSON; escalating to human", ms
+            )
         decision = str(verdict.get("verdict", "")).lower()
         notes = verdict.get("notes") or []
         notes_text = "; ".join(str(note) for note in notes)[:500]
@@ -190,4 +213,6 @@ class GateEngine:
             return GateResult("review", "pass", f"approve {notes_text}".strip(), ms)
         if decision == "revise":
             return GateResult("review", "fail", f"revise: {notes_text}", ms)
-        return GateResult("review", "error", f"unknown verdict '{decision}'; escalating to human", ms)
+        return GateResult(
+            "review", "error", f"unknown verdict '{decision}'; escalating to human", ms
+        )

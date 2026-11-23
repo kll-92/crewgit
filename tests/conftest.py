@@ -16,7 +16,16 @@ from crewgit.gitops import Git
 def git_commit(root: Path, message: str) -> str:
     subprocess.run(["git", "add", "-A"], cwd=str(root), check=True)
     subprocess.run(
-        ["git", "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", message],
+        [
+            "git",
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.com",
+            "commit",
+            "-m",
+            message,
+        ],
         cwd=str(root),
         check=True,
         capture_output=True,
@@ -30,7 +39,9 @@ def git_commit(root: Path, message: str) -> str:
 def workspace(tmp_path: Path) -> Path:
     subprocess.run(["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=str(tmp_path), check=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=str(tmp_path), check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"], cwd=str(tmp_path), check=True
+    )
     (tmp_path / "cart.py").write_text('MESSAGE = "hi"\n', encoding="utf-8")
     (tmp_path / "test_cart.py").write_text(
         'from cart import MESSAGE\n\ndef test_message():\n    assert MESSAGE == "hello"\n',
@@ -47,7 +58,12 @@ def workspace(tmp_path: Path) -> Path:
             "acceptance": {"tests": f"{sys.executable} -m pytest -q test_cart.py"},
             "budget": {"max_files": 2, "max_lines": 20},
             "mock_actions": [
-                {"op": "patch", "path": "cart.py", "find": 'MESSAGE = "hi"', "replace": 'MESSAGE = "hello"'}
+                {
+                    "op": "patch",
+                    "path": "cart.py",
+                    "find": 'MESSAGE = "hi"',
+                    "replace": 'MESSAGE = "hello"',
+                }
             ],
         },
     )

@@ -125,7 +125,9 @@ class Git:
             return
         separator = "" if not existing or existing.endswith("\n") else "\n"
         block = "" if "CrewGit runtime" in existing else "# CrewGit runtime and common agent junk\n"
-        exclude.write_text(existing + separator + block + "\n".join(additions) + "\n", encoding="utf-8")
+        exclude.write_text(
+            existing + separator + block + "\n".join(additions) + "\n", encoding="utf-8"
+        )
 
     def has_changes(self, worktree: Path, *, include_untracked: bool = True) -> bool:
         args = ["status", "--porcelain"]
@@ -187,7 +189,9 @@ class Git:
         self._run(["worktree", "add", "--detach", str(path), ref])
 
     def remove_worktree(self, path: Path, *, force: bool = True) -> None:
-        proc = self._run(["worktree", "remove", *(["--force"] if force else []), str(path)], check=False)
+        proc = self._run(
+            ["worktree", "remove", *(["--force"] if force else []), str(path)], check=False
+        )
         if proc.returncode != 0:
             self._run(["worktree", "prune"], check=False)
 
@@ -267,7 +271,9 @@ class Git:
         if proc.returncode != 0:
             self._run(["merge", "--abort"], check=False)
             detail = (proc.stderr or proc.stdout).strip()
-            raise GitError(f"merge of {branch} failed and was aborted: {detail}", detail={"branch": branch})
+            raise GitError(
+                f"merge of {branch} failed and was aborted: {detail}", detail={"branch": branch}
+            )
         return self.head()
 
     # ------------------------------------------------------------------ notes
@@ -314,5 +320,7 @@ class Git:
         return None
 
     def has_notes_ref(self) -> bool:
-        proc = self._run(["rev-parse", "--verify", "--quiet", f"refs/notes/{NOTES_REF}"], check=False)
+        proc = self._run(
+            ["rev-parse", "--verify", "--quiet", f"refs/notes/{NOTES_REF}"], check=False
+        )
         return proc.returncode == 0

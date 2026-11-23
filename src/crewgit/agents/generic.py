@@ -33,7 +33,9 @@ class GenericAdapter(Adapter):
         try:
             return template.format(**values)
         except KeyError as exc:
-            raise AgentError(f"unknown placeholder {{{exc.args[0]}}} in agent command template") from exc
+            raise AgentError(
+                f"unknown placeholder {{{exc.args[0]}}} in agent command template"
+            ) from exc
 
     def run(self, ctx: RunContext) -> AgentResult:
         command = self._expand(ctx)

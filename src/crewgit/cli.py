@@ -47,7 +47,9 @@ STATE_STYLE = {
 
 
 def root_option() -> Path | None:
-    return typer.Option(None, "--root", "-C", help="Project root (defaults to the current workspace)")
+    return typer.Option(
+        None, "--root", "-C", help="Project root (defaults to the current workspace)"
+    )
 
 
 def _workspace(root: Path | None) -> Path:
@@ -80,7 +82,12 @@ def _gates_table(run: Run) -> Table:
     table.add_column("detail", overflow="fold")
     table.add_column("ms", justify="right", style="dim")
     for gate in run.gates:
-        table.add_row(gate.name, f"[{_style(gate.status)}]{gate.status}[/]", gate.detail, str(gate.duration_ms))
+        table.add_row(
+            gate.name,
+            f"[{_style(gate.status)}]{gate.status}[/]",
+            gate.detail,
+            str(gate.duration_ms),
+        )
     return table
 
 
@@ -120,7 +127,9 @@ def init(
     root: Path | None = root_option(),
     project: str | None = typer.Option(None, "--project", help="Project name shown on the board"),
     branch: str = typer.Option("main", "--branch", help="Default branch"),
-    init_git: bool = typer.Option(False, "--init-git", help="Run `git init` when the folder is not a repository"),
+    init_git: bool = typer.Option(
+        False, "--init-git", help="Run `git init` when the folder is not a repository"
+    ),
     force: bool = typer.Option(False, "--force", help="Overwrite an existing CrewGit config"),
 ) -> None:
     """Create .crewgit/config.yaml, tasks/ and agent defaults."""
@@ -129,7 +138,9 @@ def init(
         paths = Paths(workspace)
         if paths.config_file.exists() and not force:
             Git(workspace).ensure_excluded()
-            console.print("[yellow]workspace already initialised; nothing to do (use --force to rewrite config)[/yellow]")
+            console.print(
+                "[yellow]workspace already initialised; nothing to do (use --force to rewrite config)[/yellow]"
+            )
             return
         git = Git(workspace)
         if not git.is_repo():
@@ -137,7 +148,9 @@ def init(
                 raise CrewGitError("not a git repository: run `git init` first, or pass --init-git")
             git.init(branch)
         elif not git.is_clean():
-            console.print("[yellow]![/yellow] main worktree has uncommitted changes; commit them before running agents")
+            console.print(
+                "[yellow]![/yellow] main worktree has uncommitted changes; commit them before running agents"
+            )
         paths.ensure()
         write_default_config(workspace, project or workspace.name, branch)
         git.ensure_excluded()
@@ -162,12 +175,20 @@ def init(
 
 
 @agent_app.command("list")
-def agent_list(root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")) -> None:
+def agent_list(
+    root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")
+) -> None:
     """List agents from .crewgit/config.yaml."""
     with guard():
         config = load_config(_workspace(root))
         if as_json:
-            print(json.dumps({name: cfg.to_dict() for name, cfg in config.agents.items()}, indent=2, ensure_ascii=False))
+            print(
+                json.dumps(
+                    {name: cfg.to_dict() for name, cfg in config.agents.items()},
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
             return
         table = Table(header_style="bold")
         table.add_column("agent", style="bold")
@@ -184,7 +205,9 @@ def agent_add(
     name: str = typer.Argument(..., help="Agent name, used by tasks"),
     adapter: str = typer.Option("mock", "--adapter", help="mock | generic | claude"),
     role: str = typer.Option("", "--role", help="planner | coder | reviewer (mock only)"),
-    command: str | None = typer.Option(None, "--command", help="Command template for the generic adapter"),
+    command: str | None = typer.Option(
+        None, "--command", help="Command template for the generic adapter"
+    ),
     model: str | None = typer.Option(None, "--model", help="Model label for manifests"),
     force: bool = typer.Option(False, "--force"),
     root: Path | None = root_option(),
@@ -198,7 +221,9 @@ def agent_add(
         if adapter not in ("mock", "generic", "claude"):
             raise ContractError(f"unknown adapter '{adapter}' (known: mock, generic, claude)")
         if adapter == "generic" and not command:
-            raise ContractError("the generic adapter needs --command, e.g. 'aider --yes --message-file {prompt_file}'")
+            raise ContractError(
+                "the generic adapter needs --command, e.g. 'aider --yes --message-file {prompt_file}'"
+            )
         data = yaml.safe_load(Paths(workspace).config_file.read_text(encoding="utf-8"))
         entry: dict[str, Any] = {"adapter": adapter}
         if role:
@@ -208,7 +233,9 @@ def agent_add(
         if model:
             entry["model"] = model
         data.setdefault("agents", {})[name] = entry
-        Paths(workspace).config_file.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        Paths(workspace).config_file.write_text(
+            yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8"
+        )
         load_config(workspace)  # validate before claiming success
         console.print(f"[green]✓[/green] agent '{name}' saved ({adapter})")
 
@@ -226,7 +253,9 @@ def agent_remove(
         if name not in agents:
             raise ContractError(f"agent '{name}' does not exist")
         del agents[name]
-        Paths(workspace).config_file.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        Paths(workspace).config_file.write_text(
+            yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8"
+        )
         load_config(workspace)
         console.print(f"[green]✓[/green] agent '{name}' removed")
 
@@ -235,7 +264,9 @@ def agent_remove(
 
 
 @task_app.command("list")
-def task_list(root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")) -> None:
+def task_list(
+    root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")
+) -> None:
     """List task contracts with derived board status."""
     with guard():
         board = _runner(root).board()
@@ -296,9 +327,13 @@ def task_show(
 def task_new(
     task_id: str = typer.Option(..., "--id", help="Task id, e.g. T-101"),
     title: str = typer.Option(..., "--title"),
-    scope: list[str] = typer.Option(..., "--scope", help="Path glob the agent may touch (repeatable)"),
+    scope: list[str] = typer.Option(
+        ..., "--scope", help="Path glob the agent may touch (repeatable)"
+    ),
     agent: str | None = typer.Option(None, "--agent"),
-    depends: list[str] | None = typer.Option(None, "--depends", help="Dependency task id (repeatable)"),
+    depends: list[str] | None = typer.Option(
+        None, "--depends", help="Dependency task id (repeatable)"
+    ),
     tests: str | None = typer.Option(None, "--tests", help="Acceptance command"),
     max_files: int = typer.Option(6, "--max-files"),
     max_lines: int = typer.Option(300, "--max-lines"),
@@ -330,7 +365,9 @@ def task_new(
 
 
 @task_app.command("check")
-def task_check(root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")) -> None:
+def task_check(
+    root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")
+) -> None:
     """Validate every contract, including dependencies and cycles."""
     with guard():
         try:
@@ -355,7 +392,9 @@ def run(
     ready: bool = typer.Option(False, "--ready", help="Run every unblocked task"),
     parallel: int = typer.Option(1, "--parallel", "-p", help="Concurrent runs for --ready"),
     limit: int | None = typer.Option(None, "--limit", help="Cap the ready set"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Print the plan and resolved command, execute nothing"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Print the plan and resolved command, execute nothing"
+    ),
     as_json: bool = typer.Option(False, "--json"),
     root: Path | None = root_option(),
 ) -> None:
@@ -372,9 +411,20 @@ def run(
                 table = Table(header_style="bold", show_header=False)
                 table.add_column("key", style="bold")
                 table.add_column("value", overflow="fold")
-                for key in ("task", "title", "agent", "adapter", "branch", "worktree", "prompt_sha256", "command"):
+                for key in (
+                    "task",
+                    "title",
+                    "agent",
+                    "adapter",
+                    "branch",
+                    "worktree",
+                    "prompt_sha256",
+                    "command",
+                ):
                     table.add_row(key, str(plan[key]))
-                console.print(Panel(table, title="dry run · nothing executed", border_style="yellow"))
+                console.print(
+                    Panel(table, title="dry run · nothing executed", border_style="yellow")
+                )
             return
         if ready:
             runs = runner.run_ready(parallel=parallel, limit=limit)
@@ -422,7 +472,11 @@ def board(root: Path | None = root_option(), as_json: bool = typer.Option(False,
             table.add_column(column, overflow="fold")
         for item in data["tasks"]:
             latest = item["latest_run"]
-            gate_chips = " ".join(f"{gate['name']}:{gate['status']}" for gate in latest["gates"]) if latest else "—"
+            gate_chips = (
+                " ".join(f"{gate['name']}:{gate['status']}" for gate in latest["gates"])
+                if latest
+                else "—"
+            )
             diff = (
                 f"{latest['diff_stat'].get('files', 0)}f +{latest['diff_stat'].get('insertions', 0)}/-{latest['diff_stat'].get('deletions', 0)}"
                 if latest
@@ -440,7 +494,9 @@ def board(root: Path | None = root_option(), as_json: bool = typer.Option(False,
         console.print(table)
         blocked = [item for item in data["tasks"] if item["status"] == "blocked"]
         for item in blocked:
-            console.print(f"[red]blocked[/red] {item['id']}: {escape(item.get('status_reason') or '')}")
+            console.print(
+                f"[red]blocked[/red] {item['id']}: {escape(item.get('status_reason') or '')}"
+            )
 
 
 @app.command()
@@ -461,13 +517,17 @@ def show(
         if item.usage:
             console.print(f"[dim]usage: {json.dumps(item.usage, ensure_ascii=False)}[/dim]")
         if diff and item.commit:
-            console.print(Syntax(runner.git.diff_text(item.base_commit, item.commit), "diff", word_wrap=True))
+            console.print(
+                Syntax(runner.git.diff_text(item.base_commit, item.commit), "diff", word_wrap=True)
+            )
 
 
 @app.command()
 def merge(
     run_id: str = typer.Argument(...),
-    force: bool = typer.Option(False, "--force", help="Merge despite red gates (requires --reason)"),
+    force: bool = typer.Option(
+        False, "--force", help="Merge despite red gates (requires --reason)"
+    ),
     reason: str | None = typer.Option(None, "--reason", help="Audited override reason"),
     root: Path | None = root_option(),
 ) -> None:
@@ -539,7 +599,16 @@ def stats(root: Path | None = root_option(), as_json: bool = typer.Option(False,
             print(json.dumps(data, indent=2, ensure_ascii=False))
             return
         table = Table(header_style="bold")
-        for column in ("agent", "runs", "passed", "failed", "merged", "unmetered", "cost", "avg ms"):
+        for column in (
+            "agent",
+            "runs",
+            "passed",
+            "failed",
+            "merged",
+            "unmetered",
+            "cost",
+            "avg ms",
+        ):
             table.add_column(column, justify="right" if column != "agent" else "left")
         for name, entry in sorted(data["agents"].items()):
             avg = entry["duration_ms"] // entry["runs"] if entry["runs"] else 0
@@ -550,7 +619,9 @@ def stats(root: Path | None = root_option(), as_json: bool = typer.Option(False,
                 str(entry["failed"]),
                 str(entry["merged"]),
                 str(entry["unmetered"]),
-                "unmetered" if entry["runs"] and entry["unmetered"] >= entry["runs"] else f"${entry['cost_usd']:.4f}",
+                "unmetered"
+                if entry["runs"] and entry["unmetered"] >= entry["runs"]
+                else f"${entry['cost_usd']:.4f}",
                 str(avg),
             )
         console.print(table)
@@ -560,13 +631,13 @@ def stats(root: Path | None = root_option(), as_json: bool = typer.Option(False,
             if totals["runs"] and totals.get("unmetered_runs", 0) >= totals["runs"]
             else f"${totals['cost_usd']:.4f}"
         )
-        console.print(
-            f"totals: {totals['runs']} run(s), {cost}, {data['overrides']} override(s)"
-        )
+        console.print(f"totals: {totals['runs']} run(s), {cost}, {data['overrides']} override(s)")
 
 
 @app.command()
-def doctor(root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")) -> None:
+def doctor(
+    root: Path | None = root_option(), as_json: bool = typer.Option(False, "--json")
+) -> None:
     """Check workspace health: dirty tree, stale locks, orphan worktrees, missing notes."""
     with guard():
         checks = _runner(root).doctor()
@@ -577,7 +648,11 @@ def doctor(root: Path | None = root_option(), as_json: bool = typer.Option(False
             for column in ("check", "status", "detail"):
                 table.add_column(column, overflow="fold")
             for check in checks:
-                table.add_row(check["name"], f"[{_style(check['status'])}]{check['status']}[/]", check["detail"])
+                table.add_row(
+                    check["name"],
+                    f"[{_style(check['status'])}]{check['status']}[/]",
+                    check["detail"],
+                )
             console.print(table)
         if any(check["status"] == "fail" for check in checks):
             raise typer.Exit(code=1)
@@ -591,7 +666,9 @@ def gc(root: Path | None = root_option(), as_json: bool = typer.Option(False, "-
         if as_json:
             print(json.dumps(result, indent=2))
         else:
-            console.print(f"expired locks: {result['expired_locks']}, worktrees removed: {result['worktrees_removed']}")
+            console.print(
+                f"expired locks: {result['expired_locks']}, worktrees removed: {result['worktrees_removed']}"
+            )
 
 
 @app.command()
@@ -613,7 +690,9 @@ def serve(
         console.print(f"[green]CrewGit board[/green] {url}  (read-only={read_only})")
         if open_browser:
             webbrowser.open(url)
-        uvicorn.run(create_app(workspace, read_only=read_only), host=host, port=port, log_level="warning")
+        uvicorn.run(
+            create_app(workspace, read_only=read_only), host=host, port=port, log_level="warning"
+        )
 
 
 @app.command()
@@ -643,7 +722,12 @@ def demo(
             from .server import create_app
 
             console.print("[green]serving demo board[/green] http://127.0.0.1:7879")
-            uvicorn.run(create_app(Path(result["path"]), read_only=False), host="127.0.0.1", port=7879, log_level="warning")
+            uvicorn.run(
+                create_app(Path(result["path"]), read_only=False),
+                host="127.0.0.1",
+                port=7879,
+                log_level="warning",
+            )
 
 
 @app.command()
