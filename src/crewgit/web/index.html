@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CrewGit board</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0c10'/%3E%3Ccircle cx='9' cy='9' r='3.5' fill='%23c6ff3d'/%3E%3Ccircle cx='23' cy='16' r='3.5' fill='%2357c7ff'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%23c792ea'/%3E%3Cpath d='M12 9h5.5a4 4 0 0 1 4 4v.5M12 23h5.5a4 4 0 0 0 4-4v-.5' stroke='%236b7686' stroke-width='1.6' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="9" cy="9" r="3.5" class="node node-a" />
+        <circle cx="23" cy="16" r="3.5" class="node node-b" />
+        <circle cx="9" cy="23" r="3.5" class="node node-c" />
+        <path d="M12 9h5.5a4 4 0 0 1 4 4v.5M12 23h5.5a4 4 0 0 0 4-4v-.5" class="edge" />
+      </svg>
+      <span class="wordmark">CrewGit</span>
+      <span class="sep">/</span>
+      <span class="project" id="project">loading…</span>
+      <span class="branch" id="branch"></span>
+    </div>
+    <div class="stats" id="stats">
+      <span class="stat"><b id="stat-done">0</b> done</span>
+      <span class="stat"><b id="stat-runs">0</b> runs</span>
+      <span class="stat"><b id="stat-cost">$0.0000</b></span>
+    </div>
+    <div class="actions">
+      <span class="mode" id="mode">live</span>
+      <button class="ghost" id="refresh" title="Refresh (R)">Refresh</button>
+    </div>
+  </header>
+
+  <main class="board" id="board" aria-live="polite"></main>
+
+  <footer class="footer">
+    <div class="legend">
+      <span class="chip pass">scope pass</span>
+      <span class="chip fail">fail</span>
+      <span class="chip skip">skip</span>
+      <span class="chip error">needs human</span>
+    </div>
+    <div class="hint">Every merge carries <code>Crewgit-Task / Run / Agent / Contract-Hash</code> trailers. Press <code>R</code> to refresh.</div>
+  </footer>
+
+  <div class="modal hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <span id="modal-title">diff</span>
+        <button class="ghost" id="modal-close">Close</button>
+      </div>
+      <pre id="modal-body"></pre>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
