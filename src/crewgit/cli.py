@@ -128,7 +128,8 @@ def init(
         workspace = Path(root or Path.cwd()).resolve()
         paths = Paths(workspace)
         if paths.config_file.exists() and not force:
-            raise ContractError("workspace is already initialised; pass --force to rewrite .crewgit/config.yaml")
+            console.print("[yellow]workspace already initialised; nothing to do (use --force to rewrite config)[/yellow]")
+            return
         git = Git(workspace)
         if not git.is_repo():
             if not init_git:

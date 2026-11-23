@@ -19,7 +19,7 @@ First public MVP. Local-first, offline-testable, no hosted service.
 - **CLI.** `init`, `agent`, `task`, `run`, `board`, `show`, `merge`, `reject`, `replay`, `stats`, `doctor`, `gc`, `serve`, `mcp`, `demo`, `version`; `--json` on read commands.
 - **Adapters.** `mock` (deterministic, offline), `generic` (any CLI via a command template), `claude` (Claude Code command shape).
 - **Offline demo.** `crewgit demo` builds a throwaway repo, hires three mock agents, blocks an out-of-scope edit, merges the rest, and prints the provenance chain. No API key, no network.
-- **41 tests** covering models, git operations, store/locks, runner, gates, API, CLI, and the demo; GitHub Actions CI on Python 3.10–3.13 plus a wheel build.
+- **42 tests** covering models, git operations, store/locks, runner, gates, API, CLI, and the demo; GitHub Actions CI on Python 3.10–3.13 plus a wheel build.
 
 ### Design decisions
 

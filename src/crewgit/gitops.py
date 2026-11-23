@@ -24,6 +24,7 @@ DEFAULT_EXCLUDES = (
     ".crewgit/board.db",
     ".crewgit/board.db-wal",
     ".crewgit/board.db-shm",
+    ".crewgit/board.db.lock",
     ".crewgit/notes.lock",
     ".crewgit/server.log",
     "__pycache__/",

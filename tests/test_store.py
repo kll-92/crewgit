@@ -59,3 +59,4 @@ def test_patterns_overlap() -> None:
     assert patterns_overlap("src/*", "src/**")
     assert not patterns_overlap("src/**", "tests/**")
     assert not patterns_overlap("docs/a.md", "docs/b.md")
+    assert patterns_overlap("src/Cart.py", "src/cart.py")  # macOS/Windows are case-insensitive

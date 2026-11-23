@@ -28,6 +28,17 @@ def test_init_and_board(tmp_path: Path) -> None:
     assert "project" in board.stdout
 
 
+def test_init_is_idempotent(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True)
+    first = runner.invoke(app, ["init", "-C", str(tmp_path)])
+    assert first.exit_code == 0
+    config = (tmp_path / ".crewgit" / "config.yaml").read_text(encoding="utf-8")
+    second = runner.invoke(app, ["init", "-C", str(tmp_path)])
+    assert second.exit_code == 0
+    assert "already initialised" in second.stdout
+    assert (tmp_path / ".crewgit" / "config.yaml").read_text(encoding="utf-8") == config
+
+
 def test_task_new_and_check(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True)
     assert runner.invoke(app, ["init", "-C", str(tmp_path)]).exit_code == 0

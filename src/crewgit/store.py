@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .gitops import file_lock
 from .models import Run, StoreError
 
 SCHEMA = """
@@ -40,7 +41,7 @@ def _segment_compatible(left: str, right: str) -> bool:
         return True
     if any(char in left for char in "*?") or any(char in right for char in "*?"):
         return True  # conservative: treat wildcard segments as possibly overlapping
-    return left == right
+    return left.casefold() == right.casefold()
 
 
 def patterns_overlap(left: str, right: str) -> bool:
@@ -131,23 +132,24 @@ class Store:
     def acquire_locks(self, run_id: str, task_id: str, patterns: list[str], ttl_s: int) -> list[str]:
         now = time.time()
         expires = now + max(int(ttl_s), 1)
-        with self._connect() as conn:
-            conn.execute("DELETE FROM locks WHERE expires_at < ?", (now,))
-            rows = conn.execute(
-                "SELECT pattern, run_id, task_id FROM locks WHERE run_id != ?",
-                (run_id,),
-            ).fetchall()
-            conflicts = [
-                f"{row['pattern']} held by {row['run_id']} ({row['task_id']})"
-                for row in rows
-                if any(patterns_overlap(pattern, row["pattern"]) for pattern in patterns)
-            ]
-            if conflicts:
-                return conflicts
-            conn.executemany(
-                "INSERT INTO locks (pattern, run_id, task_id, acquired_at, expires_at) VALUES (?, ?, ?, ?, ?)",
-                [(pattern, run_id, task_id, now, expires) for pattern in patterns],
-            )
+        # Serialise the read-check-write across processes; SQLite alone cannot.
+        with file_lock(self.path.with_name(self.path.name + ".lock")), self._connect() as conn:
+                conn.execute("DELETE FROM locks WHERE expires_at < ?", (now,))
+                rows = conn.execute(
+                    "SELECT pattern, run_id, task_id FROM locks WHERE run_id != ?",
+                    (run_id,),
+                ).fetchall()
+                conflicts = [
+                    f"{row['pattern']} held by {row['run_id']} ({row['task_id']})"
+                    for row in rows
+                    if any(patterns_overlap(pattern, row["pattern"]) for pattern in patterns)
+                ]
+                if conflicts:
+                    return conflicts
+                conn.executemany(
+                    "INSERT INTO locks (pattern, run_id, task_id, acquired_at, expires_at) VALUES (?, ?, ?, ?, ?)",
+                    [(pattern, run_id, task_id, now, expires) for pattern in patterns],
+                )
         return []
 
     def release_locks(self, run_id: str) -> None:

@@ -10,7 +10,7 @@ Run a team of coding agents on one repository without turning <code>main</code> 
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-41%20passing-b7f24a?style=flat-square" alt="41 tests">
+  <img src="https://img.shields.io/badge/tests-42%20passing-b7f24a?style=flat-square" alt="42 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-b7f24a?style=flat-square" alt="PRs welcome">
 </p>
@@ -216,6 +216,8 @@ Crewgit-Contract-Hash: sha256:…
 
 ```bash
 git log --show-notes=crewgit      # full manifests, pushable with refs/notes/crewgit
+git push origin refs/notes/crewgit                          # publish provenance with the branch
+git fetch origin refs/notes/crewgit:refs/notes/crewgit      # after a fresh clone
 crewgit replay R-…                # same diff hash, or an explicit "diverged"
 ```
 
@@ -289,7 +291,7 @@ The full [constitution](specs/000-constitution.md) is short and enforceable. The
 
 ## Roadmap
 
-- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 41 tests.
+- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 42 tests.
 - **Phase 1 — team-ready:** PyPI, `crewgit-gate` GitHub Action, Codex/Aider/Gemini adapters, merge queue, Docker read-only board, 90-second video.
 - **Phase 2 — ecosystem:** gate plugin SDK, signed manifests, remote runner with USD caps, monorepo scopes, Windows GA.
 - **Phase 3 — scale:** per-agent identity, policy packs, hosted read-only board, A2A/MCP federation.
