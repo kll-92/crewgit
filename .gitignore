@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# CrewGit runtime state (never commit run artifacts or worktrees)
+.crewgit/worktrees/
+.crewgit/runs/
+.crewgit/board.db
+.crewgit/board.db-journal
+.crewgit/locks.json
+.crewgit/server.log
+
+# Demo / local scratch
+crewgit-demo/
+demo-output/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
