@@ -47,4 +47,4 @@ def test_read_only_blocks_actions(workspace: Path) -> None:
 def test_unknown_task_and_run(workspace: Path) -> None:
     client = TestClient(create_app(workspace))
     assert client.get("/api/tasks/T-404").status_code == 404
-    assert client.get("/api/runs/R-20260101-0000-0000").status_code == 400
+    assert client.get("/api/runs/R-20260101-0000-0000").status_code == 404

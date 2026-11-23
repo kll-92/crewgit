@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from . import __version__
 from .config import load_config
-from .models import CrewGitError
+from .models import ContractError, CrewGitError
 from .runner import Runner
 
 WEB_DIR = Path(__file__).parent / "web"
@@ -99,10 +99,18 @@ def create_app(root: Path, *, read_only: bool = False) -> FastAPI:
                 return item
         raise HTTPException(status_code=404, detail=f"unknown task {task_id}")
 
+    def load_run(run_id: str):
+        try:
+            return runner().load_run(run_id)
+        except ContractError as exc:
+            if exc.message.startswith("unknown run"):
+                raise HTTPException(status_code=404, detail=exc.message) from exc
+            raise
+
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict[str, Any]:
         r = runner()
-        item = r.load_run(run_id)
+        item = load_run(run_id)
         payload = _run_payload(r, item)
         payload["prompt"] = item.prompt
         payload["usage"] = item.usage
@@ -112,7 +120,7 @@ def create_app(root: Path, *, read_only: bool = False) -> FastAPI:
     @app.get("/api/runs/{run_id}/diff")
     def run_diff(run_id: str) -> PlainTextResponse:
         r = runner()
-        item = r.load_run(run_id)
+        item = load_run(run_id)
         if not item.commit:
             raise HTTPException(status_code=404, detail="this run has no commit")
         return PlainTextResponse(r.git.diff_text(item.base_commit, item.commit))
