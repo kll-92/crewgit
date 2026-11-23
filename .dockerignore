@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+.crewgit
+.pytest_cache
+.ruff_cache
+__pycache__
+*.py[cod]
+dist
+build
+docs
+examples
+specs
+tests
+crewgit-demo
