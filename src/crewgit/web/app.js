@@ -19,6 +19,12 @@ function esc(value) {
   }[ch]));
 }
 
+function teamCost(totals) {
+  if (!totals) return "$0";
+  if (totals.runs && totals.unmetered_runs >= totals.runs) return "unmetered";
+  return money(totals.cost_usd);
+}
+
 function money(value) {
   if (value === null || value === undefined) return "unmetered";
   const number = Number(value);
@@ -84,7 +90,7 @@ function render(board) {
   $("#branch").textContent = board.branch;
   $("#stat-done").textContent = board.counts.done;
   $("#stat-runs").textContent = board.totals.runs;
-  $("#stat-cost").textContent = money(board.totals.cost_usd);
+  $("#stat-cost").textContent = teamCost(board.totals);
 
   const byColumn = Object.fromEntries(COLUMNS.map(([key]) => [key, []]));
   for (const item of board.tasks) {

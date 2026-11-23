@@ -703,6 +703,7 @@ class Runner:
             "totals": {
                 "runs": sum(entry["runs"] for entry in agents.values()),
                 "cost_usd": round(sum(entry["cost_usd"] for entry in agents.values()), 6),
+                "unmetered_runs": sum(entry["unmetered"] for entry in agents.values()),
             },
         }
 
