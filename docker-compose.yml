@@ -1,0 +1,12 @@
+services:
+  board:
+    build: .
+    image: crewgit-board:0.1.0
+    ports:
+      - "7878:7878"
+    # The board keeps its SQLite index under .crewgit/board.db, so the mount is
+    # read-write even though the API is started in read-only mode.
+    volumes:
+      - "${CREWGIT_REPO:-.}:/workspace"
+    command: ["serve", "--host", "0.0.0.0", "--port", "7878", "--read-only"]
+    restart: unless-stopped
