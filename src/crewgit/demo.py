@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -24,7 +25,7 @@ DEMO_README = """# demo-shop
 
 A deliberately tiny cart library used by the CrewGit demo.
 
-    python -m pytest -q test_cart.py
+    python -m unittest -q test_cart
 
 The rounding bug (`round(total, 1)`) is fixed by the coder agent during the demo.
 """
@@ -44,20 +45,25 @@ def cart_total(items, discount=0.0):
     return round(total, 1)  # bug: cents are lost
 '''
 
-DEMO_TEST = '''from cart import cart_total
+DEMO_TEST = '''import unittest
+
+from cart import cart_total
 
 
-def test_cart_total_keeps_cents():
-    # 19.99 * 3 = 59.97, 10% off = 53.973, +8% tax = 58.29084 -> 58.29
-    assert cart_total([(19.99, 3)], discount=0.10) == 58.29
+class CartTotalTest(unittest.TestCase):
+    def test_cart_total_keeps_cents(self):
+        # 19.99 * 3 = 59.97, 10% off = 53.973, +8% tax = 58.29084 -> 58.29
+        self.assertEqual(cart_total([(19.99, 3)], discount=0.10), 58.29)
+
+    def test_cart_total_simple(self):
+        self.assertEqual(cart_total([(10.00, 1)]), 10.80)
+
+    def test_cart_total_empty(self):
+        self.assertEqual(cart_total([]), 0.0)
 
 
-def test_cart_total_simple():
-    assert cart_total([(10.00, 1)]) == 10.80
-
-
-def test_cart_total_empty():
-    assert cart_total([]) == 0.0
+if __name__ == "__main__":
+    unittest.main()
 '''
 
 PLAN_TASK = {
@@ -76,7 +82,7 @@ FIX_TASK = {
     "agent": "coder",
     "depends_on": ["T-100"],
     "scope": ["cart.py", "test_cart.py"],
-    "acceptance": {"tests": "__PYTEST__"},
+    "acceptance": {"tests": "__UNITTEST__"},
     "budget": {"max_files": 2, "max_lines": 60},
     "context": "cart_total rounds to one decimal, so 58.29084 becomes 58.3 instead of 58.29. Fix the rounding and keep the tests meaningful.",
     "mock_actions": [
@@ -171,9 +177,28 @@ def _print_run(run: Run) -> None:
 
 def _task_yaml(task: dict[str, Any]) -> dict[str, Any]:
     data = dict(task)
-    if data.get("acceptance", {}).get("tests") == "__PYTEST__":
-        data["acceptance"] = {"tests": f"{sys.executable} -m pytest -q test_cart.py"}
+    if data.get("acceptance", {}).get("tests") == "__UNITTEST__":
+        data["acceptance"] = {"tests": f"{sys.executable} -m unittest -q test_cart"}
     return data
+
+
+_RAN = re.compile(r"Ran (\d+) tests?")
+_FAILURES = re.compile(r"failures=(\d+)")
+
+
+def _test_summary(output: str) -> str:
+    """Turn unittest's tail into a one-line count; no pytest dependency in the demo."""
+    ran = _RAN.search(output)
+    if not ran:
+        return output.strip().splitlines()[-1] if output.strip() else "no test output"
+    total = int(ran.group(1))
+    failures = 0
+    match = _FAILURES.search(output)
+    if match:
+        failures = int(match.group(1))
+    if failures:
+        return f"{failures} failed, {total - failures} passed"
+    return f"{total} passed"
 
 
 def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str, Any]:
@@ -205,13 +230,13 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
 
     console.rule("[bold]01 · baseline")
     proc = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", "test_cart.py"],
+        [sys.executable, "-m", "unittest", "-q", "test_cart"],
         cwd=str(target),
         capture_output=True,
         text=True,
     )
-    last = (proc.stdout or proc.stderr).strip().splitlines()[-1]
-    console.print(f"pytest on main: [red]{last}[/red]  (the bug is real)")
+    summary = _test_summary(proc.stdout or proc.stderr)
+    console.print(f"unittest on main: [red]{summary}[/red]  (the bug is real)")
     console.print("[dim]the coder agent must fix it inside a declared scope[/dim]")
 
     console.rule("[bold]02 · team and contracts")
@@ -270,13 +295,13 @@ def run_demo(*, directory: Path | None = None, force: bool = False) -> dict[str,
 
     console.rule("[bold]07 · main is green")
     proc = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", "test_cart.py"],
+        [sys.executable, "-m", "unittest", "-q", "test_cart"],
         cwd=str(target),
         capture_output=True,
         text=True,
     )
-    last = (proc.stdout or proc.stderr).strip().splitlines()[-1]
-    console.print(f"pytest on main: [green]{last}[/green]")
+    summary = _test_summary(proc.stdout or proc.stderr)
+    console.print(f"unittest on main: [green]{summary}[/green]")
 
     console.rule("[bold]08 · provenance and replay")
     log = subprocess.run(

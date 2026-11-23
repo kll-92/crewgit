@@ -65,7 +65,7 @@ CrewGit demo
 3 agents · 1 repo · 1 blocked scope violation · 0 merge conflicts
 
 01 · baseline
-pytest on main: 1 failed, 2 passed  (the bug is real)
+unittest on main: 1 failed, 2 passed  (the bug is real)
 
 03 · planner T-100
 scope:pass  budget:pass  lint:skip  tests:skip  review:pass
@@ -83,7 +83,7 @@ attempting to merge T-102 anyway…
 nothing outside the declared scope can reach main — not even with a good intention
 
 07 · main is green
-pytest on main: 3 passed
+unittest on main: 3 passed
 
 08 · provenance and replay
 replay T-101: identical diff  sha256:cbe60184dc116… vs sha256:cbe60184dc116…

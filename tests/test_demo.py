@@ -16,7 +16,7 @@ def test_demo_is_green_and_has_one_blocked_task(tmp_path: Path) -> None:
 
     demo_dir = Path(result["path"])
     proc = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", "test_cart.py"],
+        [sys.executable, "-m", "unittest", "-q", "test_cart"],
         cwd=str(demo_dir),
         capture_output=True,
         text=True,
