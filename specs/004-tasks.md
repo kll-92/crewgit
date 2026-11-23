@@ -14,21 +14,31 @@
 | P0-03 | PRD | `specs/001-prd.md` | 10 P0 stories with acceptance; metrics and GTM present | `03-prd` | done |
 | P0-04 | Technical design | `specs/002-technical-design.md` | schemas match implementation; ADRs recorded | `04-tech-design` | done |
 | P0-05 | Roadmap + task breakdown | `specs/003-roadmap.md`, `specs/004-tasks.md` | phases have exit criteria; tasks map to commits | `05-roadmap-tasks` | done |
-| P0-06 | Models + config | `src/crewgit/models.py`, `config.py` | contract validation typed; config defaults; cycles rejected | `06-models-config` | planned |
-| P0-07 | Git operations | `src/crewgit/gitops.py` | worktree add/remove, commit with trailers, diff hash, notes round-trip, merge | `07-gitops` | planned |
-| P0-08 | Board store + locks | `src/crewgit/store.py` | sqlite schema, run upsert, lock acquire/release/expiry, overlap detection | `08-store-locks` | planned |
-| P0-09 | Contracts + prompt | `src/crewgit/contracts.py` | deterministic prompt hash; scope matcher; task loader | `09-contracts` | planned |
-| P0-10 | Gates | `src/crewgit/gates.py` | scope/budget/lint/tests/review with typed results | `10-gates` | planned |
-| P0-11 | Adapters | `src/crewgit/agents/*` | mock deterministic; generic template; claude json parsing | `11-adapters` | planned |
-| P0-12 | Runner | `src/crewgit/runner.py` | single run + parallel ready set; manifest; note; locks released | `12-runner` | planned |
-| P0-13 | CLI | `src/crewgit/cli.py` | init/agent/task/run/board/merge/replay/show/stats/doctor/gc/demo/serve/mcp | `13-cli` | planned |
-| P0-14 | Board API + UI | `src/crewgit/server.py`, `src/crewgit/web/*` | `/api/board` shape; actions work; polling UI | `14-server-ui` | planned |
-| P0-15 | MCP server | `src/crewgit/mcp.py` | initialize/tools list/call; submit_run gates a branch | `15-mcp` | planned |
-| P0-16 | Demo | `src/crewgit/demo.py` | offline, < 90 s, blocked scope violation, green main | `16-demo` | planned |
-| P0-17 | Tests + CI | `tests/*`, `.github/workflows/ci.yml` | ruff + pytest green on 3.10–3.13 | `17-tests-ci` | planned |
-| P0-18 | README + assets | `README.md`, `README.zh-CN.md`, `docs/*` | real transcript, diagram, install, comparison, limits | `18-readme` | planned |
-| P0-19 | Independent audit | `docs/audit-report.md` | a second agent checks spec↔code consistency; P0 findings fixed | `19-audit` | planned |
-| P0-20 | Release | tag `v0.1.0`, repo public | install from clean venv; demo passes | `20-release` | planned |
+| P0-06 | Models + config | `src/crewgit/models.py`, `config.py` | contract validation typed; config defaults; cycles rejected | `06-models-config` | done |
+| P0-07 | Git operations | `src/crewgit/gitops.py` | worktree add/remove, commit with trailers, diff hash, notes round-trip, merge | `07-gitops` | done |
+| P0-08 | Board store + locks | `src/crewgit/store.py` | sqlite schema, run upsert, lock acquire/release/expiry, overlap detection | `08-store-locks` | done |
+| P0-09 | Contracts + prompt | `src/crewgit/contracts.py` | deterministic prompt hash; scope matcher; task loader | `09-contracts` | done |
+| P0-10 | Gates | `src/crewgit/gates.py` | scope/budget/lint/tests/review with typed results | `10-gates` | done |
+| P0-11 | Adapters | `src/crewgit/agents/*` | mock deterministic; generic template; claude json parsing | `11-adapters` | done |
+| P0-12 | Runner | `src/crewgit/runner.py` | single run + parallel ready set; manifest; note; locks released | `12-runner` | done |
+| P0-13 | CLI | `src/crewgit/cli.py` | init/agent/task/run/board/merge/replay/show/stats/doctor/gc/demo/serve/mcp | `13-cli` | done |
+| P0-14 | Board API + UI | `src/crewgit/server.py`, `src/crewgit/web/*` | `/api/board` shape; actions work; polling UI | `14-server-ui` | done |
+| P0-15 | MCP server | `src/crewgit/mcp.py` | initialize/tools list/call; submit_run gates a branch | `15-mcp` | done |
+| P0-16 | Demo | `src/crewgit/demo.py` | offline, < 90 s, blocked scope violation, green main | `16-demo` | done |
+| P0-17 | Tests + CI | `tests/*`, `.github/workflows/ci.yml` | ruff + pytest green on 3.10–3.13 | `17-tests-ci` | done |
+| P0-18 | README + assets | `README.md`, `README.zh-CN.md`, `docs/*` | real transcript, diagram, install, comparison, limits | `18-readme` | done |
+| P0-19 | Independent audit | `docs/audit-report.md` | a second agent checks spec↔code consistency; P0 findings fixed | `19-audit` | done |
+| P0-20 | Release | tag `v0.1.0`, repo public | install from clean venv; demo passes | `20-release` | doing |
+
+
+### As-built notes (2026-11-23)
+
+- 45 tests green locally; GitHub Actions green on Python 3.10, 3.11, 3.12, 3.13 plus a wheel build.
+- The demo is stdlib-`unittest` based on purpose: a `pipx install` has no dev extras, and the demo must work without pytest.
+- `crewgit init` does not create a commit. Auto-committing a user's config is a side effect we refuse; the docs tell the user to review and commit it.
+- Scope locks are serialised with a cross-process file lock; SQLite alone cannot close the check-then-insert window.
+- The Dockerfile is provided and smoke-tested only through the wheel build in CI; the local Docker daemon was unavailable during the build window.
+- Deviations are recorded here rather than hidden: if the spec and the code disagree, the spec is amended in the same commit as the behavior.
 
 ---
 
