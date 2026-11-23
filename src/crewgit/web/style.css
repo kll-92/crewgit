@@ -110,7 +110,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   padding: 4px 2px 8px;
   border-bottom: 1px solid var(--line-soft);
   position: sticky;
-  top: 65px;
+  top: 0;
   background: var(--bg);
   z-index: 2;
 }

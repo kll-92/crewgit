@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-39%20passing-b7f24a?style=flat-square" alt="39 tests">
+  <img src="https://img.shields.io/badge/tests-40%20passing-b7f24a?style=flat-square" alt="40 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
 </p>
 
@@ -79,6 +79,10 @@ replay T-101: identical diff  sha256:cbe60184dc116… vs sha256:cbe60184dc116…
 
 有删节。完整输出见 [`docs/demo-output.txt`](docs/demo-output.txt)，真实终端渲染见 [`docs/assets/demo.svg`](docs/assets/demo.svg)。
 
+![CrewGit demo 后的看板](docs/assets/board.png)
+
+*Demo 后的只读看板：三次合并完成，一个任务被 scope 门禁拦下，mock 成本显示为 `unmetered`。*
+
 ## 安装
 
 需要 Python 3.10+ 与 Git 2.30+。
@@ -141,7 +145,7 @@ crewgit board                      # todo / blocked / running / review / done
 crewgit merge R-20261123-…         # 人来合，--no-ff，自动带 trailers
 ```
 
-想先看 prompt 和计划、不烧 token：
+想先看解析后的计划和实际命令、不烧 token：
 
 ```bash
 crewgit run T-101 --agent coder --dry-run
@@ -271,7 +275,7 @@ CrewGit 不是编排器、不是托管 SaaS、也不是模型路由。它是你�
 
 ## 路线图
 
-- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、39 项测试。
+- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、40 项测试。
 - **Phase 1 — 团队可用：** PyPI、`crewgit-gate` GitHub Action、Codex/Aider/Gemini 适配器、merge queue、Docker 只读看板、90 秒视频。
 - **Phase 2 — 生态：** 门禁插件 SDK、签名 manifest、带 USD 上限的远程 runner、monorepo scope、Windows GA。
 - **Phase 3 — 规模：** per-agent 身份、策略包、托管只读看板、A2A/MCP 联邦。

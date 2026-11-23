@@ -10,7 +10,7 @@ Run a team of coding agents on one repository without turning <code>main</code> 
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-39%20passing-b7f24a?style=flat-square" alt="39 tests">
+  <img src="https://img.shields.io/badge/tests-40%20passing-b7f24a?style=flat-square" alt="40 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-b7f24a?style=flat-square" alt="PRs welcome">
 </p>
@@ -91,6 +91,10 @@ replay T-101: identical diff  sha256:cbe60184dc116… vs sha256:cbe60184dc116…
 
 Trimmed for readability. Full transcript: [`docs/demo-output.txt`](docs/demo-output.txt) · rendered terminal: [`docs/assets/demo.svg`](docs/assets/demo.svg).
 
+![The CrewGit board after the demo](docs/assets/board.png)
+
+*Read-only board from the demo: three merged runs, one task blocked by the scope gate, mock costs shown as `unmetered`.*
+
 ## Install
 
 Requires Python 3.10+ and Git 2.30+.
@@ -155,7 +159,7 @@ crewgit board                      # what is todo / blocked / running / review /
 crewgit merge R-20261123-…         # human merge, --no-ff, trailers included
 ```
 
-Dry-run first if you want to see the prompt and plan without spending tokens:
+Dry-run first if you want the resolved plan and command without spending tokens:
 
 ```bash
 crewgit run T-101 --agent coder --dry-run
@@ -285,7 +289,7 @@ The full [constitution](specs/000-constitution.md) is short and enforceable. The
 
 ## Roadmap
 
-- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 39 tests.
+- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 40 tests.
 - **Phase 1 — team-ready:** PyPI, `crewgit-gate` GitHub Action, Codex/Aider/Gemini adapters, merge queue, Docker read-only board, 90-second video.
 - **Phase 2 — ecosystem:** gate plugin SDK, signed manifests, remote runner with USD caps, monorepo scopes, Windows GA.
 - **Phase 3 — scale:** per-agent identity, policy packs, hosted read-only board, A2A/MCP federation.
