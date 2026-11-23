@@ -46,7 +46,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "B008"]  # B008: Typer/FastAPI declare options in defaults by design
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
