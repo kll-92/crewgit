@@ -411,6 +411,7 @@ class Run:
     worktree: str
     prompt_sha256: str
     prompt: str = ""
+    contract_hash: str = ""
     model: str | None = None
     started_at: str = field(default_factory=iso_now)
     finished_at: str | None = None
@@ -442,6 +443,7 @@ class Run:
             "worktree": self.worktree,
             "prompt_sha256": self.prompt_sha256,
             "prompt": self.prompt,
+            "contract_hash": self.contract_hash,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "duration_ms": self.duration_ms,
@@ -472,6 +474,7 @@ class Run:
             worktree=data.get("worktree", ""),
             prompt_sha256=data.get("prompt_sha256", ""),
             prompt=data.get("prompt", ""),
+            contract_hash=data.get("contract_hash", ""),
             model=data.get("model"),
             started_at=data.get("started_at", iso_now()),
             finished_at=data.get("finished_at"),
