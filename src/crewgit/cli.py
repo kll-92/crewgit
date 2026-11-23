@@ -256,13 +256,21 @@ def task_list(root: Path | None = root_option(), as_json: bool = typer.Option(Fa
 
 
 @task_app.command("show")
-def task_show(task_id: str = typer.Argument(...), root: Path | None = root_option()) -> None:
+def task_show(
+    task_id: str = typer.Argument(...),
+    as_json: bool = typer.Option(False, "--json"),
+    root: Path | None = root_option(),
+) -> None:
     """Show a contract and its runs."""
     with guard():
         runner = _runner(root)
         task = runner.task(task_id)
-        console.print(Syntax(dump_task_yaml(task), "yaml", theme="monokai", word_wrap=True))
         runs = runner.store.list_runs(task_id)
+        if as_json:
+            payload = {"task": task.to_dict(), "runs": [run.to_dict() for run in runs]}
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return
+        console.print(Syntax(dump_task_yaml(task), "yaml", theme="monokai", word_wrap=True))
         if not runs:
             console.print("[dim]no runs yet[/dim]")
             return
@@ -488,13 +496,25 @@ def reject(
 
 
 @app.command()
-def replay(run_id: str = typer.Argument(...), root: Path | None = root_option()) -> None:
+def replay(
+    run_id: str = typer.Argument(...),
+    as_json: bool = typer.Option(False, "--json"),
+    root: Path | None = root_option(),
+) -> None:
     """Re-execute a run on its original base commit and compare diff hashes."""
     with guard():
         runner = _runner(root)
         original = runner.load_run(run_id)
         item = runner.replay(run_id)
         same = item.reproduced
+        if as_json:
+            payload = {
+                "original": original.to_dict(),
+                "replay": item.to_dict(),
+                "reproduced": same,
+            }
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return
         title = "replay · identical diff" if same else "replay · diverged"
         console.print(
             Panel(

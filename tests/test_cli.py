@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -38,6 +39,12 @@ def test_task_new_and_check(tmp_path: Path) -> None:
     check = runner.invoke(app, ["task", "check", "-C", str(tmp_path)])
     assert check.exit_code == 0
     assert "1 contract" in check.stdout
+
+    shown = runner.invoke(app, ["task", "show", "T-001", "-C", str(tmp_path), "--json"])
+    assert shown.exit_code == 0
+    payload = json.loads(shown.stdout)
+    assert payload["task"]["id"] == "T-001"
+    assert payload["runs"] == []
 
 
 def test_dry_run_does_not_execute(tmp_path: Path) -> None:
