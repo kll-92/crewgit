@@ -75,11 +75,46 @@ def test_reviewer_cannot_write_untracked_files(workspace: Path, monkeypatch: pyt
     assert run.status == "failed"
 
 
+def test_unparseable_review_goes_to_a_human(workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    class ChattyReviewer(Adapter):
+        name = "chatty"
+
+        def describe(self, ctx) -> str:  # noqa: ANN001 - test double
+            return "chatty"
+
+        def run(self, ctx):  # noqa: ANN001 - test double
+            return AgentResult(exit_code=0, stdout="looks good to me")
+
+    monkeypatch.setitem(registry.ADAPTERS, "chatty", ChattyReviewer)
+    config_path = workspace / ".crewgit" / "config.yaml"
+    data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    data["agents"]["reviewer"] = {"adapter": "chatty"}
+    config_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    git_commit(workspace, "chatty reviewer")
+
+    run = Runner(workspace).run_task("T-1")
+    gate = run.gate("review")
+    assert gate is not None and gate.status == "error"
+    assert run.status == "needs_human"
+    assert "not valid JSON" in gate.detail
+
+
+def test_stats_does_not_invent_a_zero_cost(workspace: Path) -> None:
+    runner = Runner(workspace)
+    runner.run_task("T-1")
+    stats = runner.stats()
+    task = stats["tasks"][0]
+    assert task["unmetered_runs"] == 1
+    assert task["cost_usd"] is None
+    assert stats["totals"]["unmetered_runs"] == 1
+
+
 def test_replay_reproduces_the_diff(workspace: Path) -> None:
     runner = Runner(workspace)
     run = runner.run_task("T-1")
     replay = runner.replay(run.run_id)
     assert replay.reproduced is True
+    assert replay.replay_of == run.run_id
     assert replay.diff_sha256 == run.diff_sha256
 
 

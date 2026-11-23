@@ -180,6 +180,7 @@ class Runner:
             contract_hash=task.contract_hash,
             model=agent_config.model,
             status="running",
+            replay_of=replay_of,
         )
         self.store.upsert_run(run)
 
@@ -356,6 +357,10 @@ class Runner:
         )
 
     def _persist(self, run: Run) -> None:
+        # Gate output can contain whatever the agent or tests printed; redact env values.
+        run.error = redact(run.error) if run.error else run.error
+        for gate in run.gates:
+            gate.detail = redact(gate.detail)
         payload = json.dumps(run.to_dict(), ensure_ascii=False, indent=2)
         manifest_path = self.paths.runs_dir / f"{run.run_id}.json"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -698,12 +703,14 @@ class Runner:
         tasks = []
         for task_id, runs in sorted(grouped.items()):
             latest = sorted(runs, key=lambda run: run.started_at)[-1]
+            metered = [run.total_cost for run in runs if run.total_cost is not None]
             tasks.append(
                 {
                     "task_id": task_id,
                     "runs": len(runs),
                     "status": latest.status,
-                    "cost_usd": round(sum(run.total_cost or 0 for run in runs), 6),
+                    "cost_usd": round(sum(metered), 6) if metered else None,
+                    "unmetered_runs": len(runs) - len(metered),
                 }
             )
         return {
