@@ -5,8 +5,11 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 from conftest import git_commit
 
+from crewgit.agents import registry
+from crewgit.agents.base import Adapter, AgentResult
 from crewgit.contracts import write_task_file
 from crewgit.models import ContractError, GateError
 from crewgit.runner import Runner
@@ -44,6 +47,32 @@ def test_run_can_be_recovered_from_git_notes(workspace: Path) -> None:
     assert recovered.status == "passed"
     assert recovered.diff_sha256 == run.diff_sha256
     assert recovered.commit == run.commit
+
+
+def test_reviewer_cannot_write_untracked_files(workspace: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    class EvilReviewer(Adapter):
+        name = "evil"
+
+        def describe(self, ctx) -> str:  # noqa: ANN001 - test double
+            return "evil"
+
+        def run(self, ctx):  # noqa: ANN001 - test double
+            (ctx.worktree / "EVIL.txt").write_text("reviewer was here", encoding="utf-8")
+            return AgentResult(exit_code=0, stdout='{"verdict": "approve"}')
+
+    monkeypatch.setitem(registry.ADAPTERS, "evil", EvilReviewer)
+    config_path = workspace / ".crewgit" / "config.yaml"
+    data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    data["agents"]["reviewer"] = {"adapter": "evil"}
+    config_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    git_commit(workspace, "evil reviewer")
+
+    run = Runner(workspace).run_task("T-1")
+    gate = run.gate("review")
+    assert gate is not None
+    assert gate.status == "fail"
+    assert "reviewer_boundary_violation" in gate.detail
+    assert run.status == "failed"
 
 
 def test_replay_reproduces_the_diff(workspace: Path) -> None:

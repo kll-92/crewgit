@@ -179,7 +179,7 @@ class GateEngine:
         verdict = extract_verdict(output)
         ms = int((time.monotonic() - started) * 1000)
 
-        if self.git.has_changes(self.worktree, include_untracked=False):
+        if self.git.has_changes(self.worktree):
             return GateResult("review", "fail", "reviewer_boundary_violation: reviewer modified the worktree", ms)
         if verdict is None:
             return GateResult("review", "error", "review output was not valid JSON; escalating to human", ms)
