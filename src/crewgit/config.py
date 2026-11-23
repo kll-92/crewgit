@@ -61,7 +61,7 @@ class AgentConfig:
     extra: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, name: str, data: dict[str, Any]) -> "AgentConfig":
+    def from_dict(cls, name: str, data: dict[str, Any]) -> AgentConfig:
         if not isinstance(data, dict):
             raise ContractError(f"agent {name} must be a mapping", detail={"field": f"agents.{name}"})
         adapter = data.get("adapter")
@@ -102,7 +102,7 @@ class GateConfig:
     review_agent: str | None = "reviewer"
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any] | None) -> "GateConfig":
+    def from_dict(cls, data: dict[str, Any] | None) -> GateConfig:
         data = data or {}
         if not isinstance(data, dict):
             raise ContractError("gates must be a mapping", detail={"field": "gates"})

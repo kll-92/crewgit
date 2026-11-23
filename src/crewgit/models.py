@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import yaml
 
@@ -169,7 +170,7 @@ class Budget:
                 raise ContractError(f"budget.{name} must be a positive integer", detail={"field": f"budget.{name}"})
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any] | None, defaults: "Budget | None" = None) -> "Budget":
+    def from_dict(cls, data: dict[str, Any] | None, defaults: Budget | None = None) -> Budget:
         base = defaults or cls()
         if not data:
             return Budget(base.max_files, base.max_lines)
@@ -193,7 +194,7 @@ class Acceptance:
     lint_specified: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any] | None) -> "Acceptance":
+    def from_dict(cls, data: dict[str, Any] | None) -> Acceptance:
         if data is None:
             return Acceptance()
         if not isinstance(data, dict):
@@ -244,7 +245,7 @@ class Task:
         *,
         path: Path | None = None,
         default_budget: Budget | None = None,
-    ) -> "Task":
+    ) -> Task:
         if not isinstance(data, dict):
             raise ContractError("task contract must be a mapping", detail={"field": "$"})
         task_id = data.get("id")
@@ -390,7 +391,7 @@ class GateResult:
         return {"name": self.name, "status": self.status, "detail": self.detail, "duration_ms": self.duration_ms}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "GateResult":
+    def from_dict(cls, data: dict[str, Any]) -> GateResult:
         return cls(
             name=str(data.get("name", "gate")),
             status=str(data.get("status", "error")),
@@ -462,7 +463,7 @@ class Run:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Run":
+    def from_dict(cls, data: dict[str, Any]) -> Run:
         return cls(
             run_id=data["run_id"],
             task_id=data.get("task_id", ""),
