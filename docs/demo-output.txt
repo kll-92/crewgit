@@ -1,0 +1,84 @@
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ CrewGit demo                                                                                               │
+│ 3 agents · 1 repo · 1 blocked scope violation · 0 merge conflicts                                          │
+│ /private/tmp/crewgit-demo-asset                                                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+─────────────────────────────────────────────── 01 · baseline ────────────────────────────────────────────────
+pytest on main: 1 failed, 2 passed in 0.01s  (the bug is real)
+the coder agent must fix it inside a declared scope
+────────────────────────────────────────── 02 · team and contracts ───────────────────────────────────────────
+ agent     adapter  role                   
+ planner   mock     writes the plan        
+ coder     mock     fixes the bug          
+ reviewer  mock     gate: approve / revise 
+───────────────────────────────────────────── 03 · planner T-100 ─────────────────────────────────────────────
+╭────────────────────────────────────── R-20261123-1651-7239 · passed ───────────────────────────────────────╮
+│ T-100 Plan the discount rounding fix                                                                       │
+│ agent planner (mock)   diff 1f +21 -0                                                                      │
+│ scope:pass  budget:pass  lint:skip  tests:skip  review:pass                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✓ merged as f5d48c6  (plan is reviewable like any branch)
+──────────────────────────────────── 04 · coder T-101 — fix inside scope ─────────────────────────────────────
+╭────────────────────────────────────── R-20261123-1651-b1d5 · passed ───────────────────────────────────────╮
+│ T-101 Fix discount rounding to cents                                                                       │
+│ agent coder (mock)   diff 1f +1 -1                                                                         │
+│ scope:pass  budget:pass  lint:skip  tests:pass  review:pass                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✓ merged as 0a3691f  (tests were run in an isolated worktree)
+───────────────────────────────── 05 · coder T-102 — the sneaky version bump ─────────────────────────────────
+╭────────────────────────────────────── R-20261123-1651-c38a · failed ───────────────────────────────────────╮
+│ T-102 Add changelog (and a sneaky version bump)                                                            │
+│ agent coder (mock)   diff 2f +7 -0                                                                         │
+│ scope:fail                                                                                                 │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+scope: out-of-scope paths: pyproject.toml
+attempting to merge T-102 anyway…
+✗ merge refused: run R-20261123-1651-c38a is not mergeable (status=failed); fix the gates or use --force 
+--reason
+nothing outside the declared scope can reach main — not even with a good intention
+─────────────────────────────────── 06 · coder T-102R — corrected contract ───────────────────────────────────
+╭────────────────────────────────────── R-20261123-1651-623a · passed ───────────────────────────────────────╮
+│ T-102R Add changelog entry (corrected contract)                                                            │
+│ agent coder (mock)   diff 1f +4 -0                                                                         │
+│ scope:pass  budget:pass  lint:skip  tests:skip  review:pass                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✓ merged as 8dfdca0
+───────────────────────────────────────────── 07 · main is green ─────────────────────────────────────────────
+pytest on main: 3 passed in 0.00s
+───────────────────────────────────────── 08 · provenance and replay ─────────────────────────────────────────
+╭───────────────────────────────────────────────── git log ──────────────────────────────────────────────────╮
+│ 8dfdca0 (HEAD -> main) merge: T-102R Add changelog entry (corrected contract)                              │
+│ 24fecc5 feat(T-102R): Add changelog entry (corrected contract)                                             │
+│ 0a3691f merge: T-101 Fix discount rounding to cents                                                        │
+│ f5d48c6 merge: T-100 Plan the discount rounding fix                                                        │
+│ 85b90d5 feat(T-101): Fix discount rounding to cents                                                        │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────────────── merge commit body (trailers) ───────────────────────────────────────╮
+│ merge: T-102R Add changelog entry (corrected contract)                                                     │
+│                                                                                                            │
+│ CrewGit merge of R-20261123-1651-623a by coder (mock).                                                     │
+│                                                                                                            │
+│ Crewgit-Task: T-102R                                                                                       │
+│ Crewgit-Run: R-20261123-1651-623a                                                                          │
+│ Crewgit-Agent: coder                                                                                       │
+│ Crewgit-Contract-Hash: sha256:aea86d292969fa257bb08d284b7dc81e560a0187fb516ca344a227483071e296             │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+replay T-101: identical diff  sha256:cbe60184dc116… vs sha256:cbe60184dc116…
+───────────────────────────────────────────────── 09 · board ─────────────────────────────────────────────────
+ task    status   title                                      latest gates                                     
+ T-100   done     Plan the discount rounding fix             scope:pass budget:pass lint:skip tests:skip      
+                                                             review:pass                                      
+ T-101   done     Fix discount rounding to cents             scope:pass budget:pass lint:skip tests:pass      
+                                                             review:pass                                      
+ T-102   blocked  Add changelog (and a sneaky version bump)  scope:fail                                       
+ T-102R  done     Add changelog entry (corrected contract)   scope:pass budget:pass lint:skip tests:skip      
+                                                             review:pass                                      
+runs 5 · cost unmetered (mock agents) · overrides 0
+╭───────────────────────────────────────────── try it yourself ──────────────────────────────────────────────╮
+│ cd /private/tmp/crewgit-demo-asset                                                                         │
+│ crewgit board              # same board in the terminal                                                    │
+│ crewgit serve --open       # board UI at http://127.0.0.1:7878                                             │
+│ crewgit replay R-20261123-1651-b1d5                                                                        │
+│ git log --show-notes=crewgit                                                                               │
+│ crewgit mcp                # let other agents join                                                         │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

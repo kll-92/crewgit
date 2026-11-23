@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="CrewGit — git-native collaboration for coding agents">
+  <title>CrewGit — Agents write code. Git keeps them honest.</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07080b"/>
+      <stop offset="0.55" stop-color="#090b10"/>
+      <stop offset="1" stop-color="#0e1218"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b7f24a" stop-opacity="0.20"/>
+      <stop offset="0.55" stop-color="#b7f24a" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#b7f24a" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#3a4150" opacity="0.45"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <rect width="1200" height="420" fill="url(#grid)"/>
+  <ellipse cx="1030" cy="150" rx="340" ry="250" fill="url(#glow)"/>
+
+  <g font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="64" y="92" fill="#7f8795" font-size="12.5" letter-spacing="3.2"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">GIT-NATIVE COLLABORATION FOR CODING AGENTS</text>
+    <text x="58" y="196" font-size="92" font-weight="800" letter-spacing="-4.5" fill="#f2f4f7">Crew<tspan fill="#b7f24a">Git</tspan></text>
+    <text x="62" y="252" font-size="27" font-weight="500" fill="#dfe4ec">Agents write code. Git keeps them honest.</text>
+    <text x="62" y="290" font-size="15.5" fill="#8b93a1">Task contracts · isolated worktrees · quality gates · provenance · replay</text>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">
+    <rect x="62" y="326" width="118" height="34" rx="8" fill="#12151c" stroke="#242a35"/>
+    <text x="121" y="347" text-anchor="middle" fill="#aab3c0">scope gate</text>
+    <rect x="192" y="326" width="168" height="34" rx="8" fill="#12151c" stroke="#242a35"/>
+    <text x="276" y="347" text-anchor="middle" fill="#aab3c0">worktree per task</text>
+    <rect x="372" y="326" width="132" height="34" rx="8" fill="#12151c" stroke="#242a35"/>
+    <text x="438" y="347" text-anchor="middle" fill="#aab3c0">replayable</text>
+    <rect x="516" y="326" width="118" height="34" rx="8" fill="#12151c" stroke="#242a35"/>
+    <text x="575" y="347" text-anchor="middle" fill="#aab3c0">MCP ready</text>
+  </g>
+
+  <g fill="none" stroke-linecap="round">
+    <path d="M760 300 H1148" stroke="#242b37" stroke-width="2"/>
+    <path d="M808 300 L808 188 Q808 181 815 181 L1093 181 Q1100 181 1100 188 L1100 300"
+          stroke="#3a4351" stroke-width="2"/>
+    <path d="M874 300 L874 242 Q874 235 881 235 L1047 235 Q1054 235 1054 242 L1054 300"
+          stroke="#3a4351" stroke-width="2"/>
+  </g>
+
+  <g>
+    <circle cx="808" cy="300" r="9" fill="#0b0d12" stroke="#e6edf3" stroke-width="2"/>
+    <circle cx="874" cy="300" r="9" fill="#0b0d12" stroke="#e6edf3" stroke-width="2"/>
+    <circle cx="1054" cy="300" r="9" fill="#0b0d12" stroke="#e6edf3" stroke-width="2"/>
+    <circle cx="1100" cy="300" r="9" fill="#0b0d12" stroke="#e6edf3" stroke-width="2"/>
+    <circle cx="862" cy="181" r="7" fill="#b7f24a"/>
+    <circle cx="956" cy="181" r="7" fill="#b7f24a"/>
+    <circle cx="1036" cy="181" r="7" fill="#b7f24a"/>
+    <circle cx="920" cy="235" r="7" fill="#b7f24a"/>
+    <circle cx="1000" cy="235" r="7" fill="#ff6b6b"/>
+    <path d="M995 230 L1005 240 M1005 230 L995 240" stroke="#ff6b6b" stroke-width="1.6"/>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5">
+    <text x="760" y="118" fill="#7f8795" font-size="11.5" letter-spacing="2.2">ONE REPO · THREE AGENTS · ZERO MERGE CONFLICTS</text>
+    <text x="808" y="158" fill="#8bd450">crewgit/T-101</text>
+    <text x="874" y="216" fill="#ff8f87">crewgit/T-102</text>
+    <text x="1136" y="304" text-anchor="end" fill="#6e7681">main</text>
+    <text x="1014" y="258" fill="#ff8f87" font-size="10.5">scope: pyproject.toml</text>
+    <text x="760" y="372" fill="#6e7681" font-size="10.5">every merge carries task · run · agent · contract hash</text>
+  </g>
+</svg>
