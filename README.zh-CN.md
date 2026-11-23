@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-44%20passing-b7f24a?style=flat-square" alt="44 tests">
+  <img src="https://img.shields.io/badge/tests-45%20passing-b7f24a?style=flat-square" alt="45 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
 </p>
 
@@ -106,7 +106,7 @@ PyPI 发布在 Phase 1 路线里；当前从源码安装。
 crewgit init --project "My App"
 ```
 
-会创建 `.crewgit/config.yaml`、`.crewgit/tasks/` 和运行时排除项；不会替你提交，配置由你 commit。
+会创建 `.crewgit/config.yaml`、`tasks/` 和运行时排除项；不会替你提交，配置由你 commit。
 
 接入真实 Agent（`generic` 可包装任何接受 prompt 文件的 CLI）：
 
@@ -121,7 +121,7 @@ crewgit agent add coder \
 写任务契约，先 commit，再运行：
 
 ```yaml
-# .crewgit/tasks/T-101.yaml
+# tasks/T-101.yaml
 id: T-101
 title: Fix discount rounding to cents
 agent: coder
@@ -277,7 +277,7 @@ CrewGit 不是编排器、不是托管 SaaS、也不是模型路由。它是你�
 
 ## 路线图
 
-- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、44 项测试。
+- **Phase 0 — 已完成：** 本地 MVP、五道门禁、溯源、复现、看板、MCP、离线 Demo、45 项测试。
 - **Phase 1 — 团队可用：** PyPI、`crewgit-gate` GitHub Action、Codex/Aider/Gemini 适配器、merge queue、Docker 只读看板、90 秒视频。
 - **Phase 2 — 生态：** 门禁插件 SDK、签名 manifest、带 USD 上限的远程 runner、monorepo scope、Windows GA。
 - **Phase 3 — 规模：** per-agent 身份、策略包、托管只读看板、A2A/MCP 联邦。

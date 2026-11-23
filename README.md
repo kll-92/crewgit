@@ -10,7 +10,7 @@ Run a team of coding agents on one repository without turning <code>main</code> 
 <p align="center">
   <a href="https://github.com/kll-92/crewgit/actions/workflows/ci.yml"><img src="https://github.com/kll-92/crewgit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/tests-44%20passing-b7f24a?style=flat-square" alt="44 tests">
+  <img src="https://img.shields.io/badge/tests-45%20passing-b7f24a?style=flat-square" alt="45 tests">
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
   <img src="https://img.shields.io/badge/PRs-welcome-b7f24a?style=flat-square" alt="PRs welcome">
 </p>
@@ -118,7 +118,7 @@ PyPI publishing is on the Phase 1 roadmap. Until then, install from source.
 crewgit init --project "My App"
 ```
 
-This creates `.crewgit/config.yaml`, `.crewgit/tasks/`, and the runtime excludes — and commits nothing. Commit the config yourself.
+This creates `.crewgit/config.yaml`, `tasks/`, and the runtime excludes — and commits nothing. Commit the config yourself.
 
 Add a real agent. CrewGit is adapter-based; `generic` wraps any CLI that accepts a prompt file.
 
@@ -135,7 +135,7 @@ crewgit agent add coder \
 Write a task contract. This is the unit of work; commit it before running.
 
 ```yaml
-# .crewgit/tasks/T-101.yaml
+# tasks/T-101.yaml
 id: T-101
 title: Fix discount rounding to cents
 agent: coder
@@ -291,7 +291,7 @@ The full [constitution](specs/000-constitution.md) is short and enforceable. The
 
 ## Roadmap
 
-- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 44 tests.
+- **Phase 0 — done:** local MVP, five gates, provenance, replay, board, MCP, offline demo, 45 tests.
 - **Phase 1 — team-ready:** PyPI, `crewgit-gate` GitHub Action, Codex/Aider/Gemini adapters, merge queue, Docker read-only board, 90-second video.
 - **Phase 2 — ecosystem:** gate plugin SDK, signed manifests, remote runner with USD caps, monorepo scopes, Windows GA.
 - **Phase 3 — scale:** per-agent identity, policy packs, hosted read-only board, A2A/MCP federation.

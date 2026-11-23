@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -60,3 +62,13 @@ def test_patterns_overlap() -> None:
     assert not patterns_overlap("src/**", "tests/**")
     assert not patterns_overlap("docs/a.md", "docs/b.md")
     assert patterns_overlap("src/Cart.py", "src/cart.py")  # macOS/Windows are case-insensitive
+
+
+def test_store_survives_concurrent_cold_start(tmp_path: Path) -> None:
+    db = tmp_path / ".crewgit" / "board.db"
+    db.parent.mkdir(parents=True)
+    script = f"from pathlib import Path; from crewgit.store import Store; Store(Path(r'{db}'))"
+    procs = [subprocess.Popen([sys.executable, "-c", script]) for _ in range(6)]
+    for proc in procs:
+        assert proc.wait(timeout=20) == 0
+    assert db.exists()

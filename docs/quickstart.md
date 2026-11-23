@@ -23,7 +23,7 @@ crewgit init --project "Quickstart"
 git add .crewgit && git commit -m "chore: add crewgit workspace"
 ```
 
-`crewgit init` writes `.crewgit/config.yaml` and `.crewgit/tasks/`, and adds runtime paths to `.git/info/exclude`. It does not commit anything.
+`crewgit init` writes `.crewgit/config.yaml` and `tasks/`, and adds runtime paths to `.git/info/exclude`. It does not commit anything.
 
 ## 2. Write a contract
 
@@ -37,7 +37,7 @@ crewgit task new \
   --tests "python -m pytest -q test_price.py"
 ```
 
-Then edit `.crewgit/tasks/T-201.yaml` and add context:
+Then edit `tasks/T-201.yaml` and add context:
 
 ```yaml
 context: |
@@ -49,7 +49,7 @@ Validate and commit the contract:
 
 ```bash
 crewgit task check
-git add .crewgit/tasks/T-201.yaml
+git add tasks/T-201.yaml
 git commit -m "docs(tasks): add T-201 currency formatter contract"
 ```
 

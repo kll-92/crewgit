@@ -356,6 +356,7 @@ FastAPI, static assets under `src/crewgit/web/`, no build step, no JS framework.
 |---|---|---|
 | GET | `/api/health` | liveness + version |
 | GET | `/api/board` | tasks with derived status, latest run, gate chips, cost |
+| GET | `/api/agents` | configured agents and adapters |
 | GET | `/api/tasks/{id}` | contract + runs |
 | GET | `/api/runs/{id}` | manifest |
 | GET | `/api/runs/{id}/diff` | unified diff (text/plain) |

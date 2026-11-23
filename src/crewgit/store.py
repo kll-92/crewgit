@@ -60,7 +60,9 @@ class Store:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._init()
+        # Creating the database and switching to WAL is itself a write; serialise it.
+        with file_lock(self.path.with_name(self.path.name + ".lock")):
+            self._init()
 
     def _connect(self) -> sqlite3.Connection:
         try:
