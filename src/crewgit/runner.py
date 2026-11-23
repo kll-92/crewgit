@@ -27,12 +27,11 @@ from .models import (
     ContractError,
     CrewGitError,
     GateError,
-    GateResult,
     GitError,
     Run,
     Task,
     iso_now,
-    scope_violations,
+    sha256_text,
     task_status,
 )
 from .store import Store
@@ -89,6 +88,7 @@ class Runner:
         task = self.task(task_id)
         name, agent_config, adapter = self._agent_for(task, agent_name)
         prompt = build_prompt(task, self.config.project, name)
+        base = self.git.head() if self.git.has_head() else ""
         return {
             "task": task.id,
             "title": task.title,
@@ -107,7 +107,7 @@ class Runner:
                     worktree=self.paths.worktrees_dir / worktree_name(task.id, "<run-id>"),
                     prompt=prompt,
                     prompt_path=self.paths.runs_dir / "<run-id>" / "prompt.md",
-                    base_commit=self.git.head(),
+                    base_commit=base,
                     timeout_s=self.config.gates.timeout_s,
                     env=self.env,
                     repo_root=self.root,
@@ -135,6 +135,8 @@ class Runner:
         if dry_run:
             return self._build_dry_run(task, name, agent_config, adapter)
 
+        if not self.git.has_head():
+            raise GitError("repository has no commits yet; make an initial commit before running agents")
         if not self.git.is_clean():
             raise GitError(
                 "the main worktree is dirty; commit or stash your changes before running agents "
@@ -291,7 +293,7 @@ class Runner:
             title=task.title,
             agent=name,
             adapter=agent_config.adapter,
-            base_commit=self.git.head() if self.git.is_repo() else "",
+            base_commit=self.git.head() if self.git.has_head() else "",
             branch=branch_name(task.id, "dry-run"),
             worktree=str(self.paths.worktrees_dir / worktree_name(task.id, "dry-run")),
             prompt_sha256=prompt_hash(prompt),
@@ -409,6 +411,106 @@ class Runner:
         self._persist(run)
         return run
 
+    # ------------------------------------------------------------------ external runs
+
+    def register_external(
+        self,
+        task_id: str,
+        agent_name: str,
+        branch: str,
+        commit: str,
+        summary: str = "",
+    ) -> Run:
+        """Register a branch produced outside CrewGit (another agent, a CI job, a human)."""
+        task = self.task(task_id)
+        if branch == self.config.default_branch:
+            raise ContractError("cannot submit the default branch as a run")
+        if not self.git.branch_exists(branch):
+            raise ContractError(f"branch '{branch}' does not exist")
+        head = self.git.rev_parse(branch)
+        commit_sha = self.git.rev_parse(f"{commit}^{{commit}}")
+        if not self.git.is_ancestor(commit_sha, head):
+            raise ContractError(f"commit {commit_sha[:8]} is not an ancestor of {branch}")
+        base = self.git.merge_base(self.config.default_branch, commit_sha)
+        if not base:
+            raise ContractError("cannot find a merge base with the default branch")
+        if not agent_name:
+            raise ContractError("agent is required for an external submission")
+
+        run_id = self._next_run_id(task.id)
+        worktree = self.paths.worktrees_dir / worktree_name(task.id, run_id)
+        ttl = self.config.gates.timeout_s + 600
+        conflicts = self.store.acquire_locks(run_id, task.id, list(task.scope), ttl)
+        if conflicts:
+            raise ContractError(
+                f"scope is locked for task {task.id}: {'; '.join(conflicts)}",
+                detail={"code": "scope_locked", "conflicts": conflicts},
+            )
+        prompt = summary or f"external submission of {branch} at {commit_sha[:8]}"
+        run = Run(
+            run_id=run_id,
+            task_id=task.id,
+            title=task.title,
+            agent=agent_name,
+            adapter="external",
+            base_commit=base,
+            branch=branch,
+            worktree=str(worktree),
+            prompt_sha256=sha256_text(prompt),
+            prompt=prompt,
+            contract_hash=task.contract_hash,
+            status="running",
+            started_at=iso_now(),
+        )
+        self.store.upsert_run(run)
+        created = False
+        try:
+            self.git.add_worktree_detached(worktree, commit_sha)
+            created = True
+            diff = DiffInfo(
+                base=base,
+                ref=commit_sha,
+                files=self.git.changed_files(base, commit_sha),
+                stat=self.git.numstat(base, commit_sha),
+                text=self.git.diff_text(base, commit_sha, max_chars=60_000),
+                sha=self.git.diff_sha256(base, commit_sha),
+            )
+            run.changed_files = diff.files
+            run.diff_stat = diff.stat
+            run.diff_sha256 = diff.sha
+            run.commit = commit_sha
+            run.finished_at = iso_now()
+            if not diff.files:
+                run.status = "failed"
+                run.error = "external run has no changes relative to the merge base"
+            else:
+                gates, status = GateEngine(
+                    config=self.config,
+                    task=task,
+                    worktree=worktree,
+                    env=scrubbed_env(self.config.passthrough),
+                    git=self.git,
+                    review_runner=self._review_runner(task, worktree, run),
+                ).evaluate(diff)
+                run.gates = gates
+                run.status = status
+                if status != "passed":
+                    failing = [gate for gate in gates if gate.status in ("fail", "error")]
+                    run.error = "; ".join(
+                        f"{gate.name}: {gate.detail.splitlines()[0]}" for gate in failing
+                    )[:1000]
+            self._persist(run)
+        except Exception as exc:
+            run.status = "failed"
+            run.error = str(exc)
+            self._persist(run)
+            raise
+        finally:
+            self.store.release_locks(run_id)
+            if created:
+                self.git.remove_worktree(worktree)
+        return run
+
     # ------------------------------------------------------------------ merge / reject
 
     def load_run(self, run_id: str) -> Run:
@@ -430,6 +532,8 @@ class Runner:
             raise ContractError("--force requires --reason so the override is auditable")
         if not self.git.branch_exists(run.branch):
             raise GitError(f"branch {run.branch} no longer exists")
+        if not self.git.has_head():
+            raise GitError("repository has no commits yet; make an initial commit before running agents")
         if not self.git.is_clean():
             raise GitError("main worktree is dirty; commit or stash before merging")
 

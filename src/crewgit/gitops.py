@@ -5,9 +5,9 @@ from __future__ import annotations
 import subprocess
 import tempfile
 import time
-from contextlib import contextmanager
+from collections.abc import Iterator
+from contextlib import contextmanager, suppress
 from pathlib import Path
-from typing import Iterator
 
 from .models import GitError, sha256_text
 
@@ -18,6 +18,22 @@ except ImportError:  # pragma: no cover
 
 NOTES_REF = "crewgit"
 DEFAULT_TIMEOUT = 120
+DEFAULT_EXCLUDES = (
+    ".crewgit/worktrees/",
+    ".crewgit/runs/",
+    ".crewgit/board.db",
+    ".crewgit/board.db-wal",
+    ".crewgit/board.db-shm",
+    ".crewgit/notes.lock",
+    ".crewgit/server.log",
+    "__pycache__/",
+    "*.py[cod]",
+    ".pytest_cache/",
+    ".ruff_cache/",
+    "node_modules/",
+    ".venv/",
+    ".DS_Store",
+)
 
 
 @contextmanager
@@ -28,15 +44,14 @@ def file_lock(path: Path | None) -> Iterator[None]:
         return
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    handle = open(path, "a+")
-    try:
-        if fcntl is not None:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        yield
-    finally:
-        if fcntl is not None:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-        handle.close()
+    with open(path, "a+", encoding="utf-8") as handle:
+        try:
+            if fcntl is not None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            yield
+        finally:
+            if fcntl is not None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 class Git:
@@ -87,11 +102,14 @@ class Git:
     def head(self) -> str:
         return self._run(["rev-parse", "HEAD"]).stdout.strip()
 
+    def has_head(self) -> bool:
+        return self._run(["rev-parse", "--verify", "--quiet", "HEAD"], check=False).returncode == 0
+
     def branch_name(self, cwd: Path | None = None) -> str:
         return self._run(["rev-parse", "--abbrev-ref", "HEAD"], cwd=cwd).stdout.strip()
 
-    def ensure_excluded(self, pattern: str = ".crewgit/") -> None:
-        """Keep runtime state out of `git status` without touching the user's .gitignore."""
+    def ensure_excluded(self, patterns: tuple[str, ...] = DEFAULT_EXCLUDES) -> None:
+        """Keep runtime state and common junk out of `git status` without touching .gitignore."""
         proc = self._run(["rev-parse", "--git-path", "info/exclude"], check=False)
         if proc.returncode != 0:
             return
@@ -100,10 +118,20 @@ class Git:
             exclude = self.root / exclude
         exclude.parent.mkdir(parents=True, exist_ok=True)
         existing = exclude.read_text(encoding="utf-8") if exclude.exists() else ""
-        if pattern in {line.strip() for line in existing.splitlines()}:
+        lines = {line.strip() for line in existing.splitlines()}
+        additions = [pattern for pattern in patterns if pattern not in lines]
+        if not additions:
             return
         separator = "" if not existing or existing.endswith("\n") else "\n"
-        exclude.write_text(existing + separator + pattern + "\n", encoding="utf-8")
+        block = "" if "CrewGit runtime" in existing else "# CrewGit runtime and common agent junk\n"
+        exclude.write_text(existing + separator + block + "\n".join(additions) + "\n", encoding="utf-8")
+
+    def has_changes(self, worktree: Path, *, include_untracked: bool = True) -> bool:
+        args = ["status", "--porcelain"]
+        if not include_untracked:
+            args.append("--untracked-files=no")
+        proc = self._run(args, cwd=worktree)
+        return bool(proc.stdout.strip())
 
     def is_clean(self, cwd: Path | None = None) -> bool:
         return not self._run(["status", "--porcelain"], cwd=cwd).stdout.strip()
@@ -113,6 +141,17 @@ class Git:
 
     def short(self, sha: str) -> str:
         return self._run(["rev-parse", "--short", sha], check=False).stdout.strip() or sha[:7]
+
+    def rev_parse(self, ref: str) -> str:
+        return self._run(["rev-parse", ref]).stdout.strip()
+
+    def is_ancestor(self, ancestor: str, descendant: str) -> bool:
+        proc = self._run(["merge-base", "--is-ancestor", ancestor, descendant], check=False)
+        return proc.returncode == 0
+
+    def merge_base(self, left: str, right: str) -> str | None:
+        proc = self._run(["merge-base", left, right], check=False)
+        return proc.stdout.strip() if proc.returncode == 0 else None
 
     def branch_exists(self, branch: str) -> bool:
         proc = self._run(["rev-parse", "--verify", "--quiet", f"refs/heads/{branch}"], check=False)
@@ -139,6 +178,13 @@ class Git:
         else:
             self._run(["worktree", "add", str(path), branch])
 
+    def add_worktree_detached(self, path: Path, ref: str) -> None:
+        path = Path(path)
+        if path.exists():
+            raise GitError(f"worktree path already exists: {path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._run(["worktree", "add", "--detach", str(path), ref])
+
     def remove_worktree(self, path: Path, *, force: bool = True) -> None:
         proc = self._run(["worktree", "remove", *(["--force"] if force else []), str(path)], check=False)
         if proc.returncode != 0:
@@ -164,10 +210,6 @@ class Git:
         return entries
 
     # ------------------------------------------------------------------ commits
-
-    def has_changes(self, worktree: Path) -> bool:
-        proc = self._run(["status", "--porcelain"], cwd=worktree)
-        return bool(proc.stdout.strip())
 
     def commit_all(self, worktree: Path, message: str, *, dry_run: bool = False) -> str | None:
         """Stage everything and commit. Returns None when there is nothing to commit."""
@@ -247,10 +289,8 @@ class Git:
                     time.sleep(0.25)
                 raise GitError(f"failed to write git note on {commit}: {last_error}")
         finally:
-            try:
+            with suppress(OSError):
                 Path(temp_name).unlink(missing_ok=True)
-            except OSError:
-                pass
 
     def note_show(self, commit: str) -> str | None:
         proc = self._run(["notes", "--ref", NOTES_REF, "show", commit], check=False)
